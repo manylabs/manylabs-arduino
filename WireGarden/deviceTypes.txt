@@ -1,0 +1,509 @@
+# Each device may have the following properties
+# number
+# name - this must be unique
+# define - this is used when creating the header wgDeviceTypes
+# optionDefine - this is used when creating the js hardwareDeviceTypes
+# description
+# pinType
+# subTypes
+# notes
+# units
+# docUrl
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: binaryInput
+description: Binary Input
+pinType: digital
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: tiltSwitch
+description: Tilt Switch
+pinType: digital
+docUrl: http://seeedstudio.com/wiki/GROVE_-_Starter_Kit_v1.1b#Grove_-_Tilt_switch
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: button
+description: Basic Button
+pinType: digital
+docUrl: http://seeedstudio.com/wiki/GROVE_-_Starter_Kit_v1.1b#Grove_-_Button
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: irSensor
+description: Infrared Reflective Sensor
+pinType: digital
+docUrl: https://www.manylabs.org/product/G0110/
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: lineFinder
+description: Line Finder
+pinType: digital
+docUrl: https://www.manylabs.org/product/G0191/
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: touch
+description: Touch Sensor
+pinType: digital
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Touch_Sensor
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: hallSensor
+description: Grove Hall Sensor
+pinType: digital
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Hall_Sensor
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: magneticSwitch
+description: Grove Magnetic Switch
+pinType: digital
+docUrl: http://www.seeedstudio.com/wiki/index.php?title=Twig_-_Magnetic_Switch
+
+number: 1
+define: DEVICE_TYPE_BINARY_INPUT
+name: motionSensor
+description: Grove Motion Sensor
+pinType: digital
+docUrl: https://www.manylabs.org/product/G0111/
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: analogInput
+description: Analog Input
+pinType: analog
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: lightSensor
+description: Analog Light Sensor
+pinType: analog
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Light_Sensor
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: potentiometer
+description: Potentiometer (knob)
+pinType: analog
+docUrl: http://seeedstudio.com/wiki/GROVE_-_Starter_Kit_v1.1b#Grove_-_Rotary_Angle_Sensor
+
+number: 11
+define: DEVICE_TYPE_ANALOG_TEMP
+name: analogTemperature
+description: Analog Temperature Sensor
+notes: You can pass Beta, room temperature resistance, and series resistor values for your thermistor as extra parameters.
+subTypes: temperatureC,temperatureF,resistance
+units: C,F,ohm
+pinType: analog
+docUrl: http://seeedstudio.com/wiki/GROVE_-_Starter_Kit_v1.1b#Grove_-_Temperature_Sensor
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: analogSound
+description: Analog Sound Sensor
+pinType: analog
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Sound_Sensor
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: mq2Gas
+description: MQ2 Gas Sensor
+pinType: analog
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Gas_Sensor(MQ2)
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: analogWater
+description: Analog Water Sensor
+pinType: analog
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Water_Sensor
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: groveMoisture
+description: Grove Moisture Sensor
+pinType: analog
+docUrl: http://seeedstudio.com/wiki/Grove_-_Moisture_Sensor
+
+number: 2
+define: DEVICE_TYPE_ANALOG_INPUT
+name: acSensor
+description: Grove Alternating Current Sensor
+pinType: analog
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Electricity_Sensor
+
+number: 5
+define: DEVICE_TYPE_BUTTON_SET
+name: buttonSet
+description: Button Set
+notes: specify additional pins in parameters; equals 0 if none pressed
+pinType: digital
+
+number: 10
+define: DEVICE_TYPE_ANALOG_AVERAGE
+name: analogAverage
+description: Analog Average
+notes: averages readings between updates
+pinType: analog
+
+number: 15
+define: DEVICE_TYPE_PULSE_COUNTER
+name: pulseCounter
+description: Pulse Counter
+notes: counts number of pulses on a binary/digital input pin
+pinType: digital
+
+number: 15
+define: DEVICE_TYPE_PULSE_COUNTER
+name: geigerCounter
+description: Grove Geiger-muller Counter
+pinType: digital
+
+number: 20
+define: DEVICE_TYPE_DHT11
+optionDefine: USE_DHT_DEVICE
+name: DHT11
+description: DHT11 Temperature/humidity Sensor
+subTypes: temperature,humidity
+units: C,percent
+pinType: digital
+docUrl: http://www.seeedstudio.com/wiki/Grove-_Temperature_and_Humidity_Sensor
+
+number: 21
+define: DEVICE_TYPE_DHT21
+optionDefine: USE_DHT_DEVICE
+name: DHT21
+description: DHT21 Temperature/humidity Sensor
+subTypes: temperature,humidity
+units: C,percent
+pinType: digital
+#docUrl: TODO - Not on Seeed
+
+number: 22
+define: DEVICE_TYPE_DHT22
+optionDefine: USE_DHT_DEVICE
+name: DHT22
+description: DHT22 Temperature/humidity Sensor
+subTypes: temperature,humidity
+units: C,percent
+pinType: digital
+docUrl: https://www.manylabs.org/product/G0102/
+
+number: 23
+define: DEVICE_TYPE_AM2301
+optionDefine: USE_DHT_DEVICE
+name: AM2301
+description: AM2301 Temperature/humidity Sensor
+subTypes: temperature,humidity
+units: C,percent
+pinType: digital
+#docUrl: TODO - Not on Seeed
+
+number: 30
+define: DEVICE_TYPE_DS18B20
+optionDefine: USE_DS18B20_DEVICE
+name: DS18B20
+description: DS18B20/DS18S20 Temperature Sensor
+units: C
+pinType: digital
+docUrl: https://www.manylabs.org/product/G0112/
+
+number: 32
+define: DEVICE_TYPE_ATLAS_TEMP
+name: atlas
+description: Atlas Temperature Sensor
+units: C
+pinType: serial
+docUrl: http://atlas-scientific.com/product_pages/sensors/env-tmp.html
+
+number: 35
+define: DEVICE_TYPE_MAX6675
+name: MAX6675
+description: MAX6675 Thermocouple Amplifier
+units: C
+pinType: serial
+docUrl: https://www.adafruit.com/products/269
+
+number: 42
+define: DEVICE_TYPE_TSL2561
+optionDefine: USE_TSL2561_DEVICE
+name: TSL2561
+description: TSL2561 Light Sensor
+docUrl: https://www.manylabs.org/product/G0116/
+pinType: I2C
+#TODO: The "luminance" value is from the ADC. Not really a unit.
+
+number: 46
+define: DEVICE_TYPE_GROVE_COLOR
+optionDefine: USE_GROVE_COLOR_DEVICE
+name: groveColor
+description: Grove Color Sensor
+subTypes: red,green,blue,brightness
+units: intensity
+pinType: I2C
+docUrl: https://www.manylabs.org/product/G0113/
+
+number: 47
+define: DEVICE_TYPE_ATLAS_SERIAL_COLOR
+optionDefine: USE_ATLAS_SERIAL_DEVICE
+name: atlasSerialColor
+description: Atlas Scientific Serial Color Sensor
+subTypes: red,green,blue
+units: intensity
+pinType: serial
+docUrl: http://atlas-scientific.com/product_pages/sensors/env-rgb.html
+
+number: 49
+define: DEVICE_TYPE_MAXBOTIX_SERIAL_RANGE
+optionDefine: USE_MAXBOTIX_SERIAL_DEVICE
+name: hrlvUltrasonic
+pinType: serial
+units: mm
+description: Maxbotix High Resolution Ultrasonic Sensor
+docUrl: https://www.manylabs.org/product/G0105/
+
+number: 50
+define: DEVICE_TYPE_PING
+name: ultrasonic
+description: Grove Ultrasonic Sensor
+units: cm
+docUrl: https://www.manylabs.org/product/G0108/
+pinType: digital
+
+number: 51
+define: DEVICE_TYPE_GROVE_DUST
+optionDefine: USE_GROVE_DUST_DEVICE
+name: groveDust
+description: Grove Dust Sensor
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Dust_sensor
+pinType: digital
+
+number: 52
+define: DEVICE_TYPE_BMP085
+optionDefine: USE_BMP085_DEVICE
+name: BMP085
+description: BMP085 Pressure Sensor
+subTypes: temperature,pressure,altitude
+units: C,Pa,m
+pinType: I2C
+docUrl: https://www.manylabs.org/product/G0107/
+
+number: 53
+define: DEVICE_TYPE_HEARTRATE
+name: heartRate
+description: Grove Heart Rate Band
+pinType: digital
+units: bpm
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Heart_rate_chest_belt_kit
+
+number: 54
+define: DEVICE_TYPE_HMC5883L
+optionDefine: USE_HMC5883L_DEVICE
+name: hmc5883l
+description: HMC5883L Magnetometer
+subTypes: x,y,z
+units: milligauss,milligauss,milligauss
+pinType: I2C
+docUrl: https://www.manylabs.org/product/G0106/
+
+number: 55
+define: DEVICE_TYPE_ADXL345
+optionDefine: USE_ADXL345_DEVICE
+name: adxl345
+description: ADXL345 Accelerometer
+subTypes: x,y,z
+units: g,g,g
+pinType: I2C
+docUrl: https://www.manylabs.org/product/G0104/
+
+number: 60
+define: DEVICE_TYPE_GROVE_IR_TEMP
+optionDefine: USE_GROVE_IR_TEMP_DEVICE
+name: IRTemp
+description: Grove IR Temperature Sensor
+pinType: analog
+subTypes: objectTemperature, sensorTemperature, sensorVoltage
+units: C,C,V
+notes: You can pass a voltage offset as an extra parameter to calibrate the sensor
+docUrl: https://www.manylabs.org/product/G0109/
+
+number: 61
+define: DEVICE_TYPE_INA219
+optionDefine: USE_INA219_DEVICE
+name: current
+description: INA219 Current Sensor
+notes: Defaults to 2A max current. Pass 1 as an extra parameter to use 1A max with higher resolution.
+subTypes: current, busVoltage, shuntVoltage
+units: A,V,V
+pinType: I2C
+docUrl: http://learn.adafruit.com/adafruit-ina219-current-sensor-breakout
+
+number: 62
+define: DEVICE_TYPE_IR_ENCODER
+optionDefine: USE_IR_ENCODER_DEVICE
+name: irEncoder
+description: Infrared Encoded Pulley
+subTypes: position,distance,velocity
+units: segments,cm,cm/ms
+pinType: digital
+
+number: 63
+define: DEVICE_TYPE_PULSE_SENSOR
+optionDefine: USE_PULSE_SENSOR_DEVICE
+name: pulseSensor
+description: Pulse Sensor
+units: beats per minute
+pinType: analog
+
+number: 70
+define: DEVICE_TYPE_WIND_SPEED
+optionDefine: USE_WIND_DEVICES
+name: windSpeed
+description: Wind Speed Sensor
+pinType: digital
+units: mph
+docUrl: https://www.manylabs.org/product/K0301/
+
+number: 71
+define: DEVICE_TYPE_WIND_DIRECTION
+optionDefine: USE_WIND_DEVICES
+name: windDirection
+description: Wind Direction Sensor
+pinType: analog
+units: degrees
+docUrl: https://www.manylabs.org/product/K0301/
+
+number: 72
+define: DEVICE_TYPE_RAIN_GAUGE
+optionDefine: USE_RAIN_GAUGE_DEVICE
+name: rainGauge
+description: Rain Gauge
+pinType: digital
+units: inches
+docUrl: https://www.manylabs.org/product/K0301/
+
+number: 80
+define: DEVICE_TYPE_ATLAS_SERIAL
+optionDefine: USE_ATLAS_SERIAL_DEVICE
+name: atlasSerial
+description: Atlas Scientific Serial Sensor
+pinType: serial
+notes: This is a base sensor type for other Atlas Sensors
+
+number: 81
+define: DEVICE_TYPE_ATLAS_EC
+optionDefine: USE_ATLAS_SERIAL_DEVICE
+name: atlasSerialEC
+description: Atlas Scientific Serial Ec Sensor
+pinType: serial
+notes: This sensor measures water conductivity/salinity.
+
+number: 82
+define: DEVICE_TYPE_ATLAS_DO
+optionDefine: USE_ATLAS_SERIAL_DEVICE
+name: atlasSerialDO
+description: Atlas Scientific Serial Do Sensor
+pinType: serial
+notes: This sensor measures disolved oxygen in water.
+
+number: 85
+define: DEVICE_TYPE_MOISTURE
+name: moisture
+description: Moisture Sensor
+pinType: analog
+
+number: 90
+define: DEVICE_TYPE_MINI_PH
+optionDefine: USE_MINI_PH_DEVICE
+name: miniPh
+description: Mini pH Sensor
+pinType: I2C
+notes: This sensor returns a digital value that must be converted to pH.
+
+number: 98
+define: DEVICE_TYPE_GPS
+optionDefine: USE_GPS_DEVICE
+name: gps
+description: GPS Device
+pinType: serial
+subTypes: latitude,longitude,satellites
+
+number: 130
+define: DEVICE_TYPE_RF_RECEIVER
+optionDefine: USE_RF_DEVICE
+name: rfReceiver
+description: RF Receiver
+pinType: digital
+
+number: 201
+define: DEVICE_TYPE_BINARY_OUTPUT
+name: binaryOutput
+description: Binary Output Pin
+pinType: digital
+
+number: 201
+define: DEVICE_TYPE_BINARY_OUTPUT
+name: relay
+description: Grove Relay
+pinType: digital
+docUrl: http://www.seeedstudio.com/wiki/index.php?title=GROVE_-_Starter_Bundle_V1.0b#Relay
+
+number: 202
+define: DEVICE_TYPE_PWM
+name: PWM
+description: Binary Output Pin With PWM
+notes: see Arduino docs for analogWrite
+pinType: digital
+docUrl: http://arduino.cc/en/Reference/analogWrite
+
+number: 203
+define: DEVICE_TYPE_TONE
+name: tone
+description: Binary Output Pin With Tone
+notes: see Arduino docs for tone
+pinType: digital
+docUrl: http://arduino.cc/en/Reference/Tone
+
+number: 210
+define: DEVICE_TYPE_CHAINABLE_RGB_LED
+name: chainableLed
+description: Chainable RGB LED
+subTypes: red,green,blue
+pinType: digital
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Chainable_RGB_LED
+
+number: 218
+define: DEVICE_TYPE_DISPLAY_LARGE
+name: displayLarge
+description: OLED Display With Single Value
+pinType: I2C
+
+number: 220
+define: DEVICE_TYPE_SERVO
+optionDefine: USE_SERVO_DEVICE
+name: servo
+description: Binary Output Pin With Servo Attached
+notes: see Arduino docs for Servo library
+pinType: digital
+docUrl: http://arduino.cc/en/Reference/Servo
+
+number: 221
+define: DEVICE_TYPE_MOTOR_DRIVER
+optionDefine: USE_GROVE_MOTOR_DEVICE
+name: motorDriver
+description: Grove Motor Driver
+subTypes: motor 1 direction,motor 2 direction,motor 1 speed,motor 2 speed
+pinType: I2C
+docUrl: https://www.manylabs.org/product/G0103/
+
+number: 230
+define: DEVICE_TYPE_RF_TRANSMITTER
+optionDefine: USE_RF_DEVICE
+name: rfTransmitter
+description: RF Transmitter
+pinType: digital
