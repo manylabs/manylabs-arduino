@@ -1,7 +1,8 @@
 // Manylabs BLEShieldStream Arduino Library 0.1.0
-// a stream wrapper for the Red Bear Lab BLEShield library
-// copyright Manylabs 2014
-// MIT license 
+// copyright Manylabs 2014; MIT license 
+// --------
+// This library provides a serial-like interface to the BLE Shield from Red Bear Lab.
+// It depends on the BLE library provided by Red Bear Lab.
 #ifndef _BLE_SHIELD_STREAM_H_
 #define _BLE_SHIELD_STREAM_H_
 #if ARDUINO >= 100

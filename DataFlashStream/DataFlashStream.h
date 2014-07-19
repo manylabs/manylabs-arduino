@@ -1,6 +1,8 @@
 // Manylabs DisplayStream Arduino Library 0.4.0
-// copyright Manylabs 2014
-// MIT license
+// copyright Manylabs 2014; MIT license
+// --------
+// This library allows file-like input/output using the flash memory device found
+// on the SODAQ board. It depends on the dataflash library from the SODAQ developers.
 #ifndef _MANYLABS_DATA_FLASH_STREAM_H_
 #define _MANYLABS_DATA_FLASH_STREAM_H_
 #if ARDUINO >= 100

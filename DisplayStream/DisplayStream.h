@@ -1,12 +1,17 @@
 // Manylabs DisplayStream Arduino Library 0.4.0
-// copyright Manylabs 2014
-// MIT license
+// copyright Manylabs 2014; MIT license
+// --------
+// This library allows you to use an OLED display as a serial-like stream object for 
+// displaying data. It is intended for diagnostic purposes in cases where a serial
+// connection isn't useable. It depends on the Seeed OLED library.
 #ifndef _MANYLABS_DISPLAY_STREAM_H_
 #define _MANYLABS_DISPLAY_STREAM_H_
 #include <Wire.h>
 #include <SeeedOLED.h>
 
 
+// you can define the number of rows and columns to use in your own sketch; if you don't
+// the library will use defaults provided here
 #ifndef STREAM_DISPLAY_ROWS
 	#define STREAM_DISPLAY_ROWS 8
 #endif
@@ -15,6 +20,7 @@
 #endif
 
 
+// a stream wrapper for the a Seeed OLED display; allows serial-like printing on an OLED
 class DisplayStream : public Stream {
 public:
 

@@ -1,6 +1,8 @@
 // Manylabs WifiSender Library 0.4.0
-// copyright Manylabs 2014
-// MIT license
+// copyright Manylabs 2014; MIT license
+// --------
+// This library provides a simple interface for sending data to a server via WiFi.
+// It depends on the WiFly library from Seeed Studio.
 #ifndef _MANYLABS_WIFI_SENDER_H_
 #define _MANYLABS_WIFI_SENDER_H_
 #if ARDUINO >= 100
