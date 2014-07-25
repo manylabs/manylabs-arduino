@@ -76,10 +76,12 @@ public:
 		_type = 0;
 	}
 
-	// update the state of the sensor object by reading from hardware;
-	// for some devices this function must be called frequently in order to obtain sensor values (timing of calls to check may be irregular);
-	// for multi-value devices, this must be called before calling the simple access functions
-	virtual void update() { values(); } // default: call values(), but ignore the results, so that accessors return values
+	// check the state of the sensor object by reading from hardware;
+	// for some devices this function must be called frequently in order to obtain sensor values (timing of calls to check may be irregular)
+	virtual void check() {}
+
+	// for multi-value devices, this must be called before calling the simple access functions; this is just an alias for calling values() (and ignoring the return values)
+	void refresh() { values(); } 
 
 	// returns number of different kinds of values (e.g. temperature and humidity) provides by the device
 	virtual int valueCount() { return 1; }
@@ -862,7 +864,7 @@ public:
 		return _values;
 	}
 
-	// simple accessors; assumes called values() or update()
+	// simple accessors; assumes called refresh()
 	inline float red() const { return _values[ 0 ]; }
 	inline float green() const { return _values[ 1 ]; }
 	inline float blue() const { return _values[ 2 ]; }
@@ -957,7 +959,7 @@ public:
 		return _values;
 	}
 
-	// simple accessors; assumes called values() or update()
+	// simple accessors; assumes called refresh()
 	inline float red() const { return _values[ 0 ]; }
 	inline float green() const { return _values[ 1 ]; }
 	inline float blue() const { return _values[ 2 ]; }
@@ -1228,10 +1230,10 @@ public:
 		return _values;
 	}
 
-	// last temperature value (degrees C); assumes called values() or update()
+	// last temperature value (degrees C); assumes called refresh()
 	inline float temperature() const { return _values[ 0 ]; }
 
-	// last temperature value (degrees C); assumes called values() or update()
+	// last temperature value (degrees C); assumes called refresh()
 	inline float humidity() const { return _values[ 1 ]; }
 
 private:
@@ -1302,13 +1304,13 @@ public:
 		return _values;
 	}
 
-	// last temperature value (degrees C); assumes called values() or update()
+	// last temperature value (degrees C); assumes called refresh()
 	inline float temperature() const { return _values[ 0 ]; }
 
-	// last pressure value (pascals); assumes called values() or update()
+	// last pressure value (pascals); assumes called refresh()
 	inline float pressure() const { return _values[ 1 ]; }
 
-	// last altitude value (meters); assumes called values() or update()
+	// last altitude value (meters); assumes called refresh()
 	inline float altitude() const { return _values[ 2 ]; }
 
 private:
@@ -1691,7 +1693,7 @@ public:
 		_adxl->setAxisOffset( (int) x, (int) y, (int) z );
 	}
 
-	// simple accessors; assumes called values() or update()
+	// simple accessors; assumes called refresh()
 	inline float x() const { return _values[ 0 ]; }
 	inline float y() const { return _values[ 1 ]; }
 	inline float z() const { return _values[ 2 ]; }
@@ -1764,7 +1766,7 @@ public:
 		return _values;
 	}
 
-	// simple accessors; assumes called values() or update()
+	// simple accessors; assumes called refresh()
 	inline float x() const { return _values[ 0 ]; }
 	inline float y() const { return _values[ 1 ]; }
 	inline float z() const { return _values[ 2 ]; }
@@ -1847,13 +1849,13 @@ public:
 		return _values;
 	}
 
-	// last current (A); assumes called values() or update()
+	// last current (A); assumes called refresh()
 	inline float current() const { return _values[ 0 ] * 0.001; }
 
-	// last bus voltage (V); assumes called values() or update()
+	// last bus voltage (V); assumes called refresh()
 	inline float busVoltage() const { return _values[ 1 ]; }
 
-	// last shunt voltage (V); assumes called values() or update()
+	// last shunt voltage (V); assumes called refresh()
 	inline float shuntVoltage() const { return _values[ 2 ] * 0.001; }
 
 private:
@@ -1993,13 +1995,13 @@ public:
 		return finalObjectTemp;
 	}
 
-	// last object temperature (degrees C); assumes called values() or update()
+	// last object temperature (degrees C); assumes called refresh()
 	inline float objectTemperature() const { return _values[ 0 ]; }
 
-	// last ambient temperature (degrees C); assumes called values() or update()
+	// last ambient temperature (degrees C); assumes called refresh()
 	inline float ambientTemperature() const { return _values[ 1 ]; }
 
-	// last sensor voltage (for calibration); assumes called values() or update()
+	// last sensor voltage (for calibration); assumes called refresh()
 	inline float sensorVoltage() const { return _values[ 2 ]; }
 
 private:
@@ -2112,13 +2114,13 @@ public:
 		return _values;
 	}
 
-	// last encoder position (in encoder ticks); assumes called values() or update()
+	// last encoder position (in encoder ticks); assumes called refresh()
 	inline float position() const { return _values[ 0 ]; }
 
-	// last computed distance in m; assumes called values() or update()
+	// last computed distance in m; assumes called refresh()
 	inline float distance() const { return _values[ 1 ]; }
 
-	// last computed velocity in m/s; assumes called values() or update()
+	// last computed velocity in m/s; assumes called refresh()
 	inline float velocity() const { return _values[ 2 ]; }
 
 private:
@@ -2445,7 +2447,7 @@ public:
 	}
 
 	// check for new messages from the GPS device
-	void update() {
+	void check() {
 		Stream &s = serial();
 		while (s.available()) {
 			char c = s.read();
@@ -2461,7 +2463,7 @@ public:
 	}
 
 	// latitude, longitude, and number of satellites (most recent values)
-	float *values() { update(); return _values; }
+	float *values() { check(); return _values; }
 
 	// most recent latitude
 	float latitude() { return _values[ 0 ]; }
@@ -2585,14 +2587,14 @@ public:
 	}
 
 	// accumulate analog readings
-	void update() {
+	void check() {
 		m_signalSum += analogRead( _pin );
 		m_signalCount++;
 	}
 
 	// compute average of accumulated readings
 	float value() {
-		update(); // make sure we have at least one sample
+		check(); // make sure we have at least one sample
 		int mean = m_signalSum / m_signalCount; // compute integer mean
 		m_signalSum = 0;
 		m_signalCount = 0;
@@ -2699,7 +2701,7 @@ public:
 	}
 
 	// determine which button is pressed (if any)
-	void update() {
+	void check() {
 		for (int i = 0; i < _buttonCount; i++) {
 			if (digitalRead( _buttonPins[ i ] )) {
 				_buttonPressed = i + 1;
@@ -2711,7 +2713,7 @@ public:
 	// get latest button press (does not repeat a button value unless it was released)
 	float value() {
 		int val = 0;
-		update();
+		check();
 		if (_buttonPressed && _buttonPressed != _lastButtonPressed) { // avoid repeat; could still repeat if bounce across update
 			val = _buttonPressed;
 		}
@@ -2836,7 +2838,7 @@ public:
 		resetValues();
 	}
 
-	void update() {
+	void check() {
 		if (_readStartTime == 0){
 			_readStartTime = millis();
 		}

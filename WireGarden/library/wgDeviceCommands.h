@@ -102,7 +102,7 @@ void checkSendDevices() {
 
 	// check all currently defined devices (allows devices to make quick check with hardware)
 	for (int i = 0; i < g_deviceCount; i++) {
-		g_devices[ i ]->update();
+		g_devices[ i ]->check();
 	}
 
 	// if enough time has elapsed, send values
