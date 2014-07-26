@@ -1,4 +1,4 @@
-// Manylabs WireGarden Arduino Library 0.4.0
+// Manylabs WireGarden Arduino Library 0.4.1
 // some code adapted from outside sources
 // other code copyright Manylabs 2011-2014
 // dual license:

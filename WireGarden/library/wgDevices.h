@@ -1,4 +1,4 @@
-// Manylabs WireGarden Arduino Library 0.4.0
+// Manylabs WireGarden Arduino Library
 // some code adapted from outside sources
 // other code copyright ManyLabs 2011-2014
 // dual license:
@@ -82,6 +82,9 @@ public:
 
 	// for multi-value devices, this must be called before calling the simple access functions; this is just an alias for calling values() (and ignoring the return values)
 	void refresh() { values(); } 
+
+	// temporary alias for refresh function (for backward compatibility)
+	void update() { values(); } 
 
 	// returns number of different kinds of values (e.g. temperature and humidity) provides by the device
 	virtual int valueCount() { return 1; }
@@ -2524,9 +2527,9 @@ private:
 				if (valid[ 0 ] == 'A') {
 					float lat = convertGps( parts[ 2 ] );
 					float lng = convertGps( parts[ 4 ] );
-					if (parts[ 3 ] == 'S') // use negative for southtern hemisphere
+					if (parts[ 3 ][ 0 ] == 'S') // use negative for southtern hemisphere
 						lat = -lat;
-					if (parts[ 5 ] == 'W') // use negative for western hemisphere 
+					if (parts[ 5 ][ 0 ] == 'W') // use negative for western hemisphere 
 						lng = -lng;
 					if (lat && lng) { // note: we're assuming that we're not at exactly lat == 0 or lng == 0
 						_values[ 0 ] = lat;
