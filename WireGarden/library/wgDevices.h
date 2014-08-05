@@ -1809,30 +1809,21 @@ public:
 
 	// max amps must be 1 or 2
 	INA219Device( int maxAmps = 2 ) : Device( 0 ) {
+		_ina219 = NULL;
 		_maxAmps = maxAmps;
-		init();
 	}
 
 	// initialize current sensor; does not take pin since I2C;
 	// optional argument: maxAmps (1 or 2)
 	INA219Device( char *args[], int argCount ) : Device( 0 ) {
+		_ina219 = NULL;
 		if (argCount >= 1) {
 			_maxAmps = atoi( args[ 0 ] );
 		}
-		init();
 	}
 
-	void init() {
-		_ina219.begin();
-		if (_maxAmps < 1)
-			_maxAmps = 1;
-		if (_maxAmps > 2)
-			_maxAmps = 2;
-		if (_maxAmps == 1) {
-			// This was a private function in the library with no way to cause it to be called.
-			// We've made it public so we can configure the calibration.
-			_ina219.ina219SetCalibration_32V_1A();
-		}
+	~INA219Device() {
+		delete _ina219;
 	}
 
 	// three values: bus voltage (V), shunt voltage (mV), and current (mA)
@@ -1840,9 +1831,13 @@ public:
 
 	// returns current (A), bus voltage (V), and shunt voltage (V)
 	float *values() {
-		_values[0] = _ina219.getCurrent_mA() * 0.001; // The current, derived via Ohms Law from the measured shunt voltage.
-		_values[1] = _ina219.getBusVoltage_V(); // The total voltage seen by the circuit under test.  (Supply voltage - shunt voltage).
-		_values[2] = _ina219.getShuntVoltage_mV() * 0.001; // The voltage between V- and V+.  This is the measured voltage drop across the shunt resistor.
+		if (_ina219 == NULL){
+			init();
+		}
+		_values[0] = _ina219->getCurrent_mA() * 0.001; // The current, derived via Ohms Law from the measured shunt voltage.
+		_values[1] = _ina219->getBusVoltage_V(); // The total voltage seen by the circuit under test.  (Supply voltage - shunt voltage).
+		_values[2] = _ina219->getShuntVoltage_mV() * 0.001; // The voltage between V- and V+.  This is the measured voltage drop across the shunt resistor.
+
 		// Some of our sensors go out of range when idle. We want to check for this and assume everything is 0 when this is the case.
 		if (_values[2] > _maxAmps) {
 			_values[0] = 0.0;
@@ -1853,19 +1848,34 @@ public:
 	}
 
 	// last current (A); assumes called refresh()
-	inline float current() const { return _values[ 0 ] * 0.001; }
+	inline float current() const { return _values[ 0 ]; }
 
 	// last bus voltage (V); assumes called refresh()
 	inline float busVoltage() const { return _values[ 1 ]; }
 
 	// last shunt voltage (V); assumes called refresh()
-	inline float shuntVoltage() const { return _values[ 2 ] * 0.001; }
+	inline float shuntVoltage() const { return _values[ 2 ]; }
 
 private:
 
+	void init() {
+
+		_ina219 = new Adafruit_INA219();
+		_ina219->begin();
+		if (_maxAmps < 1)
+			_maxAmps = 1;
+		if (_maxAmps > 2)
+			_maxAmps = 2;
+		if (_maxAmps == 1) {
+			// This was a private function in the library with no way to cause it to be called.
+			// We've made it public so we can configure the calibration.
+			_ina219->ina219SetCalibration_32V_1A();
+		}
+	}
+
 	float _values[3];
 	int _maxAmps;
-	Adafruit_INA219 _ina219;
+	Adafruit_INA219 *_ina219;
 };
 #endif // USE_INA219_DEVICE
 
