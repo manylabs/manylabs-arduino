@@ -81,10 +81,10 @@ public:
 	virtual void check() {}
 
 	// for multi-value devices, this must be called before calling the simple access functions; this is just an alias for calling values() (and ignoring the return values)
-	void refresh() { values(); } 
+	void refresh() { values(); }
 
 	// temporary alias for refresh function (for backward compatibility)
-	void update() { values(); } 
+	void update() { values(); }
 
 	// returns number of different kinds of values (e.g. temperature and humidity) provides by the device
 	virtual int valueCount() { return 1; }
@@ -289,7 +289,7 @@ public:
 #endif
 
 
-// This code is designed to work with the standard Grove analog temperature sensor; you can use it with other similar sensors by 
+// This code is designed to work with the standard Grove analog temperature sensor; you can use it with other similar sensors by
 // passing in beta, resistanceRoomTemp, and seriesResistor values.
 class AnalogTemperatureDevice : public Device {
 public:
@@ -2529,7 +2529,7 @@ private:
 					float lng = convertGps( parts[ 4 ] );
 					if (parts[ 3 ][ 0 ] == 'S') // use negative for southtern hemisphere
 						lat = -lat;
-					if (parts[ 5 ][ 0 ] == 'W') // use negative for western hemisphere 
+					if (parts[ 5 ][ 0 ] == 'W') // use negative for western hemisphere
 						lng = -lng;
 					if (lat && lng) { // note: we're assuming that we're not at exactly lat == 0 or lng == 0
 						_values[ 0 ] = lat;
