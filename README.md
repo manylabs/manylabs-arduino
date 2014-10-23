@@ -18,6 +18,8 @@ It depends on a variety of third-party libraries (for different hardware devices
 This library intended to be a general purpose system used by a variety of Manylabs
 sketches.
 
+There's more information in the Wiki here: [WireGarden](https://github.com/manylabs/manylabs-arduino/wiki/WireGarden)
+
 ## WifiSender
 
 This library provides a simple interface for sending data to a server via WiFi.
