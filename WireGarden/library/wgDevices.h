@@ -331,6 +331,9 @@ public:
 		return _values;
 	}
 
+	inline float tempC() const { return _values[ 0 ]; }
+	inline float tempF() const { return _values[ 1 ]; }
+
 private:
 
 	// most recent sensor value (C, F, resistance in ohms)
@@ -637,17 +640,39 @@ public:
 		delete _tsl;
 	}
 
-	// get luminosity
-	float value(){
-		uint16_t val = 0;
+	// four values: lux, full spectrum luminosity, ir luminosity, visible luminosity
+	int valueCount() { return 4; }
+
+	// get lux and luminosity
+	float *values(){
+		uint32_t lux = 0;
+		uint16_t visible = 0;
+		uint16_t full = 0;
+		uint16_t ir = 0;
 		if (_tsl == NULL) {
 			init();
 		}
 		if (_initDone) {
-			val = _tsl->getLuminosity( TSL2561_VISIBLE );
+			// Taken from TSL2561.cpp
+			uint32_t x = _tsl->getFullLuminosity();
+			full = x & 0xFFFF;
+			ir = x >> 16;
+			visible = full - ir;
+
+			lux = _tsl->calculateLux(full, ir);
 		}
-		return (float) val;
+		_values[0] = (float) lux;
+		_values[1] = (float) full;
+		_values[2] = (float) ir;
+		_values[3] = (float) visible;
+		return _values;
 	}
+
+	// simple accessors; assumes called refresh()
+	inline float lux() const { return _values[ 0 ]; }
+	inline float luminosity() const { return _values[ 1 ]; }
+	inline float irLuminosity() const { return _values[ 2 ]; }
+	inline float visibleLuminosity() const { return _values[ 3 ]; }
 
 private:
 
@@ -669,6 +694,9 @@ private:
 	boolean _initDone;
 	byte _highGain;
 	byte _longIntegration;
+
+	// most recent sensor value (lux, full luminosity, ir luminosity, visible luminosity)
+	float _values[ 4 ];
 };
 #endif
 
@@ -2270,21 +2298,21 @@ private:
 class MiniPhDevice : public Device {
 public:
 
-	// initialize connection with sensor
-	MiniPhDevice( byte pin ) : Device( pin ) {
+	// initialize connection with sensor; does not take pin since I2C
+	MiniPhDevice( char address = 0x4D ) : Device( 0 ) {
 		_initDone = false;
+		_address = address;
+		setDefaults();
+	}
 
-		// Default values
-		_pH7 = 2048;
-		_pH4 = 1286;
-		_pHSlope = 59.16;
-
-		_opAmpGain = 5.25;
-		_ADCSteps = 4096; // Number of steps in 12 Bit ADC
-		_mVConversion = 1000; // mV in V
-		// This is the vRef into the ADC on the MinipH board. It's dependant on
-		// VCC and not exact. Should be mesaured and adjusted.
-		_vRef = 4.096;
+	// initialize connection with sensor; does not take pin since I2C
+	MiniPhDevice( char *args[], int argCount ) : Device( 0 ) {
+		if (argCount >= 1) {
+			char address = (char) strtol(args[ 0 ], NULL, 16);
+			_address = address;
+		}
+		_initDone = false;
+		setDefaults();
 	}
 
 	float value() {
@@ -2308,9 +2336,6 @@ public:
 		return 7 - temp / _pHSlope;
 	}
 
-	// number of decimal places to use when sending data
-	int decimalPlaces() { return 0; };
-
 	void setCalib7( float rawValue ){
 		_pH7 = rawValue;
 		calibrate();
@@ -2320,9 +2345,13 @@ public:
 		calibrate();
 	}
 
+	char getAddress(){
+		return _address;
+	}
+
 private:
 
-	static const char _address = 0x4D;
+	char _address;
 	boolean _initDone;
 	float _pH7;
 	float _pH4;
@@ -2341,6 +2370,20 @@ private:
 		float pHDiff = _pH7 - _pH4;
 		int pHSteps = 3; // 7 - 4 = 3 steps between calibration points
 		_pHSlope = _vRef * pHDiff / _ADCSteps * _mVConversion / _opAmpGain / pHSteps;
+	}
+
+	void setDefaults(){
+		// Default values
+		_pH7 = 2048;
+		_pH4 = 1286;
+		_pHSlope = 59.16;
+
+		_opAmpGain = 5.25;
+		_ADCSteps = 4096; // Number of steps in 12 Bit ADC
+		_mVConversion = 1000; // mV in V
+		// This is the vRef into the ADC on the MinipH board. It's dependant on
+		// VCC and not exact. Should be mesaured and adjusted.
+		_vRef = 4.096;
 	}
 };
 #endif // USE_MINI_PH_DEVICE
