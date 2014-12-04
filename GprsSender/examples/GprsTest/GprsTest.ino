@@ -5,7 +5,8 @@
 // GPRS/SIM module. We're using the Adafruit Fona, but much of this code would
 // be the same for other modules.
 
-// If we were using API keys we'd need to include these headers also
+// If we were using API keys we'd need to uncomment the next three lines
+// #define USE_MANYLABS_DATA_AUTH
 // #include <sha256.h>
 // #include "ManylabsDataAuth.h"
 
