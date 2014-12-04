@@ -15,7 +15,7 @@
 
 #include <avr/wdt.h> // Watchdog timer
 
-#ifdef _MANYLABS_DATA_AUTH_H_
+#ifdef USE_MANYLABS_DATA_AUTH
 #include "ManylabsDataAuth.h"
 #endif
 
@@ -101,10 +101,14 @@ public:
     // lastErrorCode
     bool send();
 
+    #ifdef USE_MANYLABS_DATA_AUTH
+
     // same as send, but also includes the Manylabs data authentication header
     // calculated from the provided keys
     bool sendWithManylabsDataAuth( const __FlashStringHelper *public_key,
         const __FlashStringHelper *private_key );
+
+    #endif
 
     // retrieve the last HTTP status code (assuming the post was successful)
     int lastStatusCode(){ return m_lastStatusCode; }
@@ -656,6 +660,8 @@ bool GprsSender::send() {
     return true;
 }
 
+#ifdef USE_MANYLABS_DATA_AUTH
+
 // same as send, but also includes the Manylabs data authentication header
 // calculated from the provided keys
 bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
@@ -670,11 +676,7 @@ bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
     }
     writeDefaultHeaders();
 
-    #ifdef _MANYLABS_DATA_AUTH_H_
     writeAuthHeader(public_key, private_key, m_paramBuf ,*m_serialStream);
-    #else
-    return false; // You Must include ManylabsDataAuth.h
-    #endif
 
     writeData();
     if(!sendData()){
@@ -696,6 +698,8 @@ bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
     m_lastErrorCode = 0;
     return true;
 }
+
+#endif
 
 /**
  * Functions for communicating with the SIM module
