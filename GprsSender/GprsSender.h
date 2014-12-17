@@ -204,6 +204,9 @@ private:
     void append( const char *str );
     void append( const __FlashStringHelper *str );
 
+    // clears the parameter buffer
+    void clearParameterBuffer();
+
     // the (externally provided) buffer for POST parameters
     char *m_paramBuf;
 
@@ -335,6 +338,9 @@ void GprsSender::reboot() {
 
     // End FONA specific part
 
+    // Clear parameter buffer
+    clearParameterBuffer();
+
     // Disable echoing commands
     sendCommandWaitForReply(F("ATE0"), F("OK"));
 
@@ -343,7 +349,7 @@ void GprsSender::reboot() {
 }
 
 /**
- * Functions for adding data to the parameter buffer
+ * Functions for adding and removing data from the parameter buffer
  */
 
 // add data to transmit with the next call to send
@@ -453,7 +459,7 @@ void GprsSender::append( const char *str ) {
 }
 
 // add a flash string (using the F() macro) to the parameter buffer
-void GprsSender::append( const __FlashStringHelper *str ){
+void GprsSender::append( const __FlashStringHelper *str ) {
     PGM_P p = reinterpret_cast<PGM_P>(str);
     char c = pgm_read_byte(p++);
     while (c) {
@@ -467,6 +473,13 @@ void GprsSender::append( const __FlashStringHelper *str ){
 
     // add zero terminator
     m_paramBuf[ m_paramBufPos ] = 0;
+}
+
+// clears the parameter buffer
+void GprsSender::clearParameterBuffer() {
+    m_paramBuf[ 0 ] = 0;
+    m_paramBufPos = 0;
+    m_paramCount = 0;
 }
 
 
@@ -516,7 +529,8 @@ bool GprsSender::startConnection() {
     }
 
     // Start wireless connection (CIICR)
-    if( !sendCommandWaitForReply(F("AT+CIICR"), F("OK")) ){
+    // Every once in a while this takes quite a bit of time.
+    if( !sendCommandWaitForReply(F("AT+CIICR"), F("OK"), DEFAULT_NETWORK_TIMEOUT_MS) ){
         diagStreamPrintLn(F("CIICR Fail"));
         m_lastErrorCode = 1;
         return false;
@@ -598,9 +612,7 @@ void GprsSender::writeData() {
     sendRaw(m_paramBuf);
 
     // clear buffer for next round
-    m_paramBuf[ 0 ] = 0;
-    m_paramBufPos = 0;
-    m_paramCount = 0;
+    clearParameterBuffer();
     diagStreamPrintLn();
 }
 
