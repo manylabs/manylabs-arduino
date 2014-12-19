@@ -52,8 +52,8 @@
 // Default timeout for network registration. (Connecting to the cell network)
 #define DEFAULT_NETWORK_REG_TIMEOUT_MS 60000
 
-#define diagStreamPrint(...) { if (m_diagStream) m_diagStream->print(__VA_ARGS__); }
-#define diagStreamPrintLn(...) { if (m_diagStream) m_diagStream->println(__VA_ARGS__); }
+#define diagStreamPrint(...) { if (m_diagStream && m_useDiagStream) m_diagStream->print(__VA_ARGS__); }
+#define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
 
 //============================================
 // GPRS SENDER CLASS DEFINITION
@@ -66,14 +66,14 @@ public:
 
     // create a new GPRS object using the given serial object
     // diagStream is for displaying diagnostics
-    // reset pin is specific to the Adafruit Fona and is used for rebooting
+    // reset pin is specific to the Adafruit FONA and is used for rebooting
     GprsSender( int resetPin, Stream &serialStream, Stream &diagStream );
 
     // Same as above but without diagnostics
     GprsSender( int resetPin, Stream &serialStream );
 
     // set network info and parameter buffer (assumes these remain valid for
-    // lifetime of object), reboots the module (specific to the Adafruit Fona)
+    // lifetime of object), reboots the module (specific to the Adafruit FONA)
     // and waits for network registration (up to 60 seconds).
     // returns true on successful network registration, or false on timeout.
     bool init( char *parameterBuffer, int parameterBufferLength,
@@ -139,6 +139,19 @@ public:
     // 31:   -52 dBm or greater
     // 99:   not known or not detectable
     int signalStrength( uint32_t timeout = DEFAULT_TIMEOUT_MS );
+
+    // returns true if there is a diagnostic stream and diagnostics are enabled
+    // otherwise, returns false
+    bool diagnosticsEnabled(){ return m_diagStream && m_useDiagStream; }
+
+    // disable diagnostics. this is useful to temporarily disable diagnostic
+    // output if you've created the GprsSender with a diagnostic stream.
+    void disableDiagnostics(){ m_useDiagStream = false; }
+
+    // enable diagnostics. use this to re-enable diagnostic output if you've
+    // created the GprsSender with a diagnostic stream, but disabled it with
+    // disableDiagnostics().
+    void enableDiagnostics(){ m_useDiagStream = true; }
 
 private:
 
@@ -230,6 +243,9 @@ private:
     // stream for diagnostic output
     Stream *m_diagStream;
 
+    // used to disable diagnostics even when we have a diagnostic stream
+    bool m_useDiagStream;
+
     // buffer for responses from the SIM module
     char m_simBuf[SIM_BUF_LEN];
 
@@ -243,7 +259,7 @@ private:
     int m_lastErrorCode;
 
     // the pin we should toggle to reset the module (specific to the Adafruit
-    // Fona)
+    // FONA)
     int m_resetPin;
 };
 
@@ -254,7 +270,7 @@ private:
 
 // create a new GPRS object using the given serial object
 // diagStream is for displaying diagnostics
-// reset pin is specific to the Adafruit Fona and is used for rebooting
+// reset pin is specific to the Adafruit FONA and is used for rebooting
 GprsSender::GprsSender( int resetPin, Stream &serialStream, Stream &diagStream )
     : m_serialStream( &serialStream ), m_diagStream( &diagStream ) {
 
@@ -267,6 +283,8 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream, Stream &diagStream )
 
     m_lastStatusCode = -1;
     m_resetPin = resetPin;
+
+    m_useDiagStream = true;
 }
 
 // Same as above but without diagnostics
@@ -282,10 +300,12 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream )
 
     m_lastStatusCode = -1;
     m_resetPin = resetPin;
+
+    m_useDiagStream = true;
 }
 
 // set network info and parameter buffer (assumes these remain valid for
-// lifetime of object), reboots the module (specific to the Adafruit Fona)
+// lifetime of object), reboots the module (specific to the Adafruit FONA)
 // and waits for network registration (up to 60 seconds).
 // returns true on successful network registration, or false on timeout.
 bool GprsSender::init( char *parameterBuffer, int parameterBufferLength,
@@ -393,8 +413,10 @@ void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
             m_paramBuf + m_paramBufPos );
 
         // find new end of string
-        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen)
+        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen){
+            wdt_reset();
             m_paramBufPos++;
+        }
         m_paramCount++;
     }
 }
@@ -418,8 +440,10 @@ void GprsSender::add( const T *name, long value ) {
         ltoa( value, m_paramBuf + m_paramBufPos, 10 );
 
         // find new end of string
-        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen)
+        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen){
+            wdt_reset();
             m_paramBufPos++;
+        }
         m_paramCount++;
     }
 }
@@ -436,8 +460,10 @@ void GprsSender::add( const T *name, unsigned long value ) {
         ultoa( value, m_paramBuf + m_paramBufPos, 10 );
 
         // find new end of string
-        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen)
+        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen){
+            wdt_reset();
             m_paramBufPos++;
+        }
         m_paramCount++;
     }
 }
@@ -446,6 +472,7 @@ void GprsSender::add( const T *name, unsigned long value ) {
 // add a string to the parameter buffer
 void GprsSender::append( const char *str ) {
     while (str[ 0 ]) {
+        wdt_reset();
         m_paramBuf[ m_paramBufPos++ ] = str[ 0 ];
         str++;
 
@@ -463,6 +490,7 @@ void GprsSender::append( const __FlashStringHelper *str ) {
     PGM_P p = reinterpret_cast<PGM_P>(str);
     char c = pgm_read_byte(p++);
     while (c) {
+        wdt_reset();
         m_paramBuf[ m_paramBufPos++ ] = c;
         c = pgm_read_byte(p++);
 
@@ -912,7 +940,7 @@ bool GprsSender::sendCommandWaitForReply(const __FlashStringHelper *command,
 // triggering a watchdog reset
 void GprsSender::delayAndWdtReset(uint32_t ms) {
 
-    // The minimum watchdog timeout is 15ms, so we need to be under
+    // The minimum watchdog timeout is 15 ms, so we need to be under
     // this. 10 Seems reasonable
     const unsigned long minDelay = 10;
 
