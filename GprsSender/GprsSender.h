@@ -153,6 +153,11 @@ public:
     // disableDiagnostics().
     void enableDiagnostics(){ m_useDiagStream = true; }
 
+    // delay and reset the watchdog timer during the delay. If you're using a
+    // watchdog timer to reset your Arduino, you can use this delay method
+    // to prevent resetting the Arduino during the delay.
+    void delayAndWdtReset( uint32_t ms );
+
 private:
 
     // send a command to the SIM module
@@ -205,9 +210,6 @@ private:
     // read from the serial stream until it's empty. All read data will be sent
     // to the debug stream unless printFlushed is false
     void flushInput( bool printFlushed = true );
-
-    // delay and reset the watchdog timer during the delay.
-    void delayAndWdtReset( uint32_t ms );
 
     // return true if the current millis value has passed the given value that
     // was constructed as: timestamp = millis() + some value
