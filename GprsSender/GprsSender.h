@@ -55,6 +55,16 @@
 #define diagStreamPrint(...) { if (m_diagStream && m_useDiagStream) m_diagStream->print(__VA_ARGS__); }
 #define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
 
+// Utility for getting content length without writing to a buffer
+struct NullStream : public Stream{
+  NullStream( void ) { return; }
+  int available( void ) { return 0; }
+  int read( void ){ return -1; }
+  int peek( void ) { return -1; }
+  void flush( void ) { return; }
+  size_t write( uint8_t u_Data ){ return 0x01; }
+};
+
 //============================================
 // GPRS SENDER CLASS DEFINITION
 //============================================
@@ -72,12 +82,10 @@ public:
     // Same as above but without diagnostics
     GprsSender( int resetPin, Stream &serialStream );
 
-    // set network info and parameter buffer (assumes these remain valid for
-    // lifetime of object), reboots the module (specific to the Adafruit FONA)
+    // set network info, reboots the module (specific to the Adafruit FONA),
     // and waits for network registration (up to 60 seconds).
     // returns true on successful network registration, or false on timeout.
-    bool init( char *parameterBuffer, int parameterBufferLength,
-        const __FlashStringHelper *apn,
+    bool init( const __FlashStringHelper *apn,
         const __FlashStringHelper *apnUsername = 0,
         const __FlashStringHelper *apnPassword = 0 );
 
@@ -196,10 +204,6 @@ private:
     // write the default headers
     void writeDefaultHeaders();
 
-    // write the content-length header and the current data. clear the parameter
-    // buffer for the next round
-    void writeData();
-
     // tell the SIM module to send the data
     bool sendData();
 
@@ -215,24 +219,11 @@ private:
     // was constructed as: timestamp = millis() + some value
     bool timedOut( uint32_t timestamp );
 
-    // add a string to the parameter buffer
-    void append( const char *str );
-    void append( const __FlashStringHelper *str );
-
     // clears the parameter buffer
-    void clearParameterBuffer();
+    void clearDataLength();
 
-    // the (externally provided) buffer for POST parameters
-    char *m_paramBuf;
-
-    // the length of the buffer
-    int m_paramBufLen;
-
-    // the current position in the buffer (next data will be written here)
-    int m_paramBufPos;
-
-    // number of parameters currently in paramBuf
-    int m_paramCount;
+    // the length (in bytes) of the data to be sent
+    size_t m_dataLength;
 
     // network info
     const __FlashStringHelper *m_apn;
@@ -244,6 +235,8 @@ private:
 
     // stream for diagnostic output
     Stream *m_diagStream;
+
+    NullStream m_nullStream;
 
     // used to disable diagnostics even when we have a diagnostic stream
     bool m_useDiagStream;
@@ -263,6 +256,8 @@ private:
     // the pin we should toggle to reset the module (specific to the Adafruit
     // FONA)
     int m_resetPin;
+
+    bool m_dataCountMode;
 };
 
 
@@ -278,15 +273,14 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream, Stream &diagStream )
 
     m_simBufPos = 0;
 
-    m_paramBuf = NULL;
-    m_paramBufLen = 0;
-    m_paramBufPos = 0;
-    m_paramCount = 0;
+    m_dataLength = 0;
 
     m_lastStatusCode = -1;
     m_resetPin = resetPin;
 
     m_useDiagStream = true;
+
+    m_dataCountMode = true;
 }
 
 // Same as above but without diagnostics
@@ -295,30 +289,24 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream )
 
     m_simBufPos = 0;
 
-    m_paramBuf = NULL;
-    m_paramBufLen = 0;
-    m_paramBufPos = 0;
-    m_paramCount = 0;
+    m_dataLength = 0;
 
     m_lastStatusCode = -1;
     m_resetPin = resetPin;
 
     m_useDiagStream = true;
+
+    m_dataCountMode = true;
 }
 
-// set network info and parameter buffer (assumes these remain valid for
-// lifetime of object), reboots the module (specific to the Adafruit FONA)
+// set network info, reboots the module (specific to the Adafruit FONA),
 // and waits for network registration (up to 60 seconds).
 // returns true on successful network registration, or false on timeout.
-bool GprsSender::init( char *parameterBuffer, int parameterBufferLength,
-    const __FlashStringHelper *apn,
+bool GprsSender::init( const __FlashStringHelper *apn,
     const __FlashStringHelper *apnUsername,
     const __FlashStringHelper *apnPassword ) {
 
-    m_paramBuf = parameterBuffer;
-    m_paramBufLen = parameterBufferLength;
-    m_paramBufPos = 0;
-    m_paramCount = 0;
+    m_dataLength = 0;
 
     m_apn = apn;
     m_apnUsername = apnUsername;
@@ -360,8 +348,9 @@ void GprsSender::reboot() {
 
     // End FONA specific part
 
-    // Clear parameter buffer
-    clearParameterBuffer();
+    // Clear data length
+    clearDataLength();
+    m_dataCountMode = true;
 
     // Disable echoing commands
     sendCommandWaitForReply(F("ATE0"), F("OK"));
@@ -371,26 +360,48 @@ void GprsSender::reboot() {
 }
 
 /**
- * Functions for adding and removing data from the parameter buffer
+ * Functions for adding data to be sent or counted (for content-length)
  */
 
 // add data to transmit with the next call to send
 template <typename T>
-void GprsSender::add(const T *value)
-{
-    append(value);
+void GprsSender::add(const T *value) {
+    if(m_dataCountMode = false){
+        m_serialStream->print(value);
+        diagStreamPrint(value);
+    }else{
+        size_t length = m_nullStream.print(value);
+        m_dataLength += length;
+    }
 }
 
 
 // add a value to transmit with the next call to send()
 template <typename T>
 void GprsSender::add( const T *name, const T *value ) {
-    if (m_paramCount)
-        append( F("&") );
-    append( name );
-    append( F("=") );
-    append( value );
-    m_paramCount++;
+    if(m_dataCountMode = false){
+        if (m_dataLength){
+            m_serialStream->print( F("&") );
+            diagStreamPrint( F("&") );
+        }
+        m_serialStream->print( name );
+        diagStreamPrint( name );
+
+        m_serialStream->print( F("=") );
+        diagStreamPrint( F("=") );
+
+        m_serialStream->print( value );
+        diagStreamPrint( value );
+    }else{
+        size_t length = 0;
+        if (m_dataLength)
+            length += m_nullStream.print( F("&") );
+        length += m_nullStream.print( name );
+        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( value );
+
+        m_dataLength += length;
+    }
 }
 
 
@@ -405,21 +416,28 @@ void GprsSender::add( const T *name, float value, byte decimalPlaces ) {
 template <typename T>
 void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
 
-    // we'll assume that the value doesn't have more than 14 digits
-    if (m_paramBufPos + 15 < m_paramBufLen) {
-        if (m_paramCount)
-            append( F("&") );
-        append( name );
-        append( F("=") );
-        dtostrf( value, decimalPlaces, decimalPlaces,
-            m_paramBuf + m_paramBufPos );
-
-        // find new end of string
-        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen){
-            wdt_reset();
-            m_paramBufPos++;
+    if(m_dataCountMode = false){
+        if (m_dataLength){
+            m_serialStream->print( F("&") );
+            diagStreamPrint( F("&") );
         }
-        m_paramCount++;
+        m_serialStream->print( name );
+        diagStreamPrint( name );
+
+        m_serialStream->print( F("=") );
+        diagStreamPrint( F("=") );
+
+        m_serialStream->print( value, decimalPlaces );
+        diagStreamPrint( value, decimalPlaces );
+    }else{
+        size_t length = 0;
+        if (m_dataLength)
+            length += m_nullStream.print( F("&") );
+        length += m_nullStream.print( name );
+        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( value, decimalPlaces );
+
+        m_dataLength += length;
     }
 }
 
@@ -434,19 +452,28 @@ void GprsSender::add( const T *name, int value ) {
 // add a value to transmit with the next call to send()
 template <typename T>
 void GprsSender::add( const T *name, long value ) {
-    if (m_paramBufPos + 12 < m_paramBufLen) {
-        if (m_paramCount)
-            append( F("&") );
-        append( name );
-        append( F("=") );
-        ltoa( value, m_paramBuf + m_paramBufPos, 10 );
-
-        // find new end of string
-        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen){
-            wdt_reset();
-            m_paramBufPos++;
+    if(m_dataCountMode = false){
+        if (m_dataLength){
+            m_serialStream->print( F("&") );
+            diagStreamPrint( F("&") );
         }
-        m_paramCount++;
+        m_serialStream->print( name );
+        diagStreamPrint( name );
+
+        m_serialStream->print( F("=") );
+        diagStreamPrint( F("=") );
+
+        m_serialStream->print( value );
+        diagStreamPrint( value );
+    }else{
+        size_t length = 0;
+        if (m_dataLength)
+            length += m_nullStream.print( F("&") );
+        length += m_nullStream.print( name );
+        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( value );
+
+        m_dataLength += length;
     }
 }
 
@@ -454,62 +481,34 @@ void GprsSender::add( const T *name, long value ) {
 // add a value to transmit with the next call to send()
 template <typename T>
 void GprsSender::add( const T *name, unsigned long value ) {
-    if (m_paramBufPos + 12 < m_paramBufLen) {
-        if (m_paramCount)
-            append( F("&") );
-        append( name );
-        append( F("=") );
-        ultoa( value, m_paramBuf + m_paramBufPos, 10 );
-
-        // find new end of string
-        while (m_paramBuf[ m_paramBufPos ] && m_paramBufPos < m_paramBufLen){
-            wdt_reset();
-            m_paramBufPos++;
+    if(m_dataCountMode = false){
+        if (m_dataLength){
+            m_serialStream->print( F("&") );
+            diagStreamPrint( F("&") );
         }
-        m_paramCount++;
+        m_serialStream->print( name );
+        diagStreamPrint( name );
+
+        m_serialStream->print( F("=") );
+        diagStreamPrint( F("=") );
+
+        m_serialStream->print( value );
+        diagStreamPrint( value );
+    }else{
+        size_t length = 0;
+        if (m_dataLength)
+            length += m_nullStream.print( F("&") );
+        length += m_nullStream.print( name );
+        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( value );
+
+        m_dataLength += length;
     }
-}
-
-
-// add a string to the parameter buffer
-void GprsSender::append( const char *str ) {
-    while (str[ 0 ]) {
-        wdt_reset();
-        m_paramBuf[ m_paramBufPos++ ] = str[ 0 ];
-        str++;
-
-        // leave room for zero terminator
-        if (m_paramBufPos + 1 >= m_paramBufLen)
-            break;
-    }
-
-    // add zero terminator
-    m_paramBuf[ m_paramBufPos ] = 0;
-}
-
-// add a flash string (using the F() macro) to the parameter buffer
-void GprsSender::append( const __FlashStringHelper *str ) {
-    PGM_P p = reinterpret_cast<PGM_P>(str);
-    char c = pgm_read_byte(p++);
-    while (c) {
-        wdt_reset();
-        m_paramBuf[ m_paramBufPos++ ] = c;
-        c = pgm_read_byte(p++);
-
-        // leave room for zero terminator
-        if (m_paramBufPos + 1 >= m_paramBufLen)
-            break;
-    }
-
-    // add zero terminator
-    m_paramBuf[ m_paramBufPos ] = 0;
 }
 
 // clears the parameter buffer
-void GprsSender::clearParameterBuffer() {
-    m_paramBuf[ 0 ] = 0;
-    m_paramBufPos = 0;
-    m_paramCount = 0;
+void GprsSender::clearDataLength() {
+    m_dataLength = 0;
 }
 
 
@@ -608,7 +607,7 @@ bool GprsSender::startConnection() {
 }
 
 // write the default headers
-void GprsSender::writeDefaultHeaders() {
+void GprsSender::writeDefaultHeaders(int contentLength) {
     flushInput();
     diagStreamPrint(F("->"));
     sendRaw(F("POST "));
@@ -621,28 +620,15 @@ void GprsSender::writeDefaultHeaders() {
     sendRaw(F("\r\n"));
     sendRaw(F("Connection: close\r\n"));
     sendRaw(F("Content-Type: application/x-www-form-urlencoded\r\n"));
-    diagStreamPrintLn();
-}
-
-// write the content-length header and the current data. clear the parameter
-// buffer for the next round
-void GprsSender::writeData() {
-    flushInput();
-    diagStreamPrint(F("->"));
 
     // Content Length header
     sendRaw(F("Content-Length: "));
-    sendRaw(strlen(m_paramBuf));
+    sendRaw(contentLength);
     sendRaw(F("\r\n"));
 
     // Blank line before data
     sendRaw(F("\r\n"));
 
-    // Data
-    sendRaw(m_paramBuf);
-
-    // clear buffer for next round
-    clearParameterBuffer();
     diagStreamPrintLn();
 }
 
@@ -681,7 +667,10 @@ bool GprsSender::send() {
         return false;
     }
     writeDefaultHeaders();
-    writeData();
+    clearDataLength(); // Otherwise the first argument will have a &
+
+    // TODO - Break apart. User has to add data here
+
     if(!sendData()){
         closeConnection();
         m_lastErrorCode = 2;
@@ -719,8 +708,10 @@ bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
     writeDefaultHeaders();
 
     writeAuthHeader(public_key, private_key, m_paramBuf ,*m_serialStream);
+    clearDataLength(); // Otherwise the first argument will have a &
 
-    writeData();
+    // TODO - Break apart. User has to add data here
+
     if(!sendData()){
         m_lastErrorCode = 2;
         closeConnection();
