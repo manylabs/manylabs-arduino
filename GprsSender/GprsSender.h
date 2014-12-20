@@ -56,7 +56,8 @@
 #define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
 
 // Utility for getting content length without writing to a buffer
-struct NullStream : public Stream{
+// http://forum.arduino.cc/index.php?topic=234635.msg1689266#msg1689266
+struct NullStream : public Stream {
   NullStream( void ) { return; }
   int available( void ) { return 0; }
   int read( void ){ return -1; }
