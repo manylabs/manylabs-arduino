@@ -258,6 +258,9 @@ private:
     // FONA)
     int m_resetPin;
 
+    // when this is true, we're counting the bytes the user adds for the
+    // content-length header. When it's false, we're printing the data they add
+    // directly to the stream for the SIM module
     bool m_dataCountMode;
 };
 
