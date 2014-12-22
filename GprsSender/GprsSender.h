@@ -706,18 +706,6 @@ bool GprsSender::prepareToSend( const __FlashStringHelper *public_key,
 // returns false on error. you can check the reason for the error with
 // lastErrorCode
 bool GprsSender::send() {
-    // if(!startConnection()){
-    //     closeConnection();
-
-    //     // startConnection sets it's own values for m_lastErrorCode, so don't
-    //     // set that here.
-    //     return false;
-    // }
-    // writeDefaultHeaders(m_dataLength);
-    // clearDataLength(); // Otherwise the first argument will have an &
-
-    // TODO - Break apart. User has to add data here
-
     if(!sendData()){
         closeConnection();
         m_lastErrorCode = 2;
