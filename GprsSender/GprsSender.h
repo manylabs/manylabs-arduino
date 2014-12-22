@@ -15,10 +15,6 @@
 
 #include <avr/wdt.h> // Watchdog timer
 
-#ifdef USE_MANYLABS_DATA_AUTH
-#include "ManylabsDataAuth.h"
-#endif
-
 // These defines control what server the GprsSender will post to
 // If you were trying to post to "www.google.com:1234/post/here/", here's how
 // it breaks down:
@@ -107,16 +103,6 @@ public:
 
     // TODO - Doc
     bool prepareToSend();
-
-    #ifdef USE_MANYLABS_DATA_AUTH
-
-    // TODO - Doc
-    // same as send, but also includes the Manylabs data authentication header
-    // calculated from the provided keys
-    bool prepareToSend( const __FlashStringHelper *public_key,
-        const __FlashStringHelper *private_key );
-
-    #endif
 
     // post to the server with the values specified since the last call to send
     // returns false on error. you can check the reason for the error with
@@ -375,7 +361,7 @@ void GprsSender::reboot() {
 // add data to transmit with the next call to send
 template <typename T>
 void GprsSender::add(const T *value) {
-    if(m_dataCountMode = false){
+    if(m_dataCountMode == false){
         m_serialStream->print(value);
         diagStreamPrint(value);
     }else{
@@ -388,7 +374,7 @@ void GprsSender::add(const T *value) {
 // add a value to transmit with the next call to send()
 template <typename T>
 void GprsSender::add( const T *name, const T *value ) {
-    if(m_dataCountMode = false){
+    if(m_dataCountMode == false){
         if (m_dataLength){
             m_serialStream->print( F("&") );
             diagStreamPrint( F("&") );
@@ -425,7 +411,7 @@ void GprsSender::add( const T *name, float value, byte decimalPlaces ) {
 template <typename T>
 void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
 
-    if(m_dataCountMode = false){
+    if(m_dataCountMode == false){
         if (m_dataLength){
             m_serialStream->print( F("&") );
             diagStreamPrint( F("&") );
@@ -461,7 +447,7 @@ void GprsSender::add( const T *name, int value ) {
 // add a value to transmit with the next call to send()
 template <typename T>
 void GprsSender::add( const T *name, long value ) {
-    if(m_dataCountMode = false){
+    if(m_dataCountMode == false){
         if (m_dataLength){
             m_serialStream->print( F("&") );
             diagStreamPrint( F("&") );
@@ -490,7 +476,7 @@ void GprsSender::add( const T *name, long value ) {
 // add a value to transmit with the next call to send()
 template <typename T>
 void GprsSender::add( const T *name, unsigned long value ) {
-    if(m_dataCountMode = false){
+    if(m_dataCountMode == false){
         if (m_dataLength){
             m_serialStream->print( F("&") );
             diagStreamPrint( F("&") );
@@ -671,41 +657,30 @@ bool GprsSender::prepareToSend() {
         return false;
     }
     writeDefaultHeaders(m_dataLength);
-    clearDataLength(); // Otherwise the first argument will have an &
+
+    // Clear the data length. Otherwise the first argument will have an &
+    clearDataLength();
+
+    // Set the count mode to false. This means calling add will send the data
+    // directly to the SIM module
+    m_dataCountMode = false;
 
     // Blank line before data
     sendRaw(F("\r\n"));
     return true;
 }
 
-#ifdef USE_MANYLABS_DATA_AUTH
-
-// TODO - Doc
-// same as prepareToSend, but also includes the Manylabs data authentication
-// header calculated from the provided keys
-bool GprsSender::prepareToSend( const __FlashStringHelper *public_key,
-    const __FlashStringHelper *private_key ) {
-
-    if(!startConnection()){
-        closeConnection();
-
-        // startConnection sets it's own values for m_lastErrorCode, so don't
-        // set that here.
-        return false;
-    }
-    writeDefaultHeaders(m_dataLength);
-    clearDataLength(); // Otherwise the first argument will have an &
-
-    writeAuthHeader(public_key, private_key, m_paramBuf ,*m_serialStream);
-    return true;
-}
-
-#endif
-
 // post to the server with the values specified since the last call to send
 // returns false on error. you can check the reason for the error with
 // lastErrorCode
 bool GprsSender::send() {
+    // Clear the data length. Otherwise the first argument will have an &
+    clearDataLength();
+
+    // Set the count mode to true. This means calling add will count the bytes
+    // for the content-length header
+    m_dataCountMode = true;
+
     if(!sendData()){
         closeConnection();
         m_lastErrorCode = 2;
