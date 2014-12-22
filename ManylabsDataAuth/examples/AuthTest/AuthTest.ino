@@ -10,22 +10,24 @@ char largeBuffer[ LARGE_BUFFER_SIZE ];
 #define SMALL_BUFFER_SIZE 50
 char smallBuffer[ SMALL_BUFFER_SIZE ];
 
-char data[] = "dataSet=1&temperature=21&humidity=50";
+ManylabsDataAuth dataAuth;
 
 void setup() {
+
     Serial.begin(9600);
     Serial.println("Starting Tests");
     Serial.println("==============");
 
     // Write the header directly to the provided Stream.
+    generateAuthHeader();
     Serial.println("Write header to stream:");
-    writeAuthHeader(F(PUBLIC_KEY), F(PRIVATE_KEY), data, Serial);
+    dataAuth.writeAuthHeader(Serial);
     Serial.println("==============");
 
     // Write the header to a buffer that's too small
+    generateAuthHeader();
     Serial.println("Write header to small buffer:");
-    bool bufferLargeEnough = writeAuthHeader(F(PUBLIC_KEY), F(PRIVATE_KEY),
-        data, smallBuffer, SMALL_BUFFER_SIZE);
+    bool bufferLargeEnough = dataAuth.writeAuthHeader(smallBuffer, SMALL_BUFFER_SIZE);
     Serial.println(smallBuffer);
     if(!bufferLargeEnough){
         Serial.println("Buffer is too small.");
@@ -33,9 +35,9 @@ void setup() {
     Serial.println("==============");
 
     // Write the header to a large buffer
+    generateAuthHeader();
     Serial.println("Write header to large buffer:");
-    bufferLargeEnough = writeAuthHeader(F(PUBLIC_KEY), F(PRIVATE_KEY), data,
-        largeBuffer, LARGE_BUFFER_SIZE);
+    bufferLargeEnough = dataAuth.writeAuthHeader(largeBuffer, LARGE_BUFFER_SIZE);
     Serial.print(largeBuffer);
     if(!bufferLargeEnough){
         Serial.println("Buffer is too small.");
@@ -45,4 +47,19 @@ void setup() {
 }
 
 void loop() {
+}
+
+// Generate the authentication header. This process needs to be completed every
+// time you want to write the authentication header.
+void generateAuthHeader() {
+
+    // Initialize (or reinitialize) the authenticator.
+    dataAuth.init(F(PUBLIC_KEY), F(PRIVATE_KEY));
+
+    // Add data to dataAuth. This works just as you would print data to Serial
+    dataAuth.print(F("dataSet=1"));
+    dataAuth.print(F("&temperature="));
+    dataAuth.print(22.01);
+    dataAuth.print(F("&humidity="));
+    dataAuth.print(55.3);
 }
