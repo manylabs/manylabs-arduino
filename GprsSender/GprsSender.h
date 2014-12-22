@@ -630,9 +630,6 @@ void GprsSender::writeDefaultHeaders(int contentLength) {
     sendRaw(contentLength);
     sendRaw(F("\r\n"));
 
-    // Blank line before data
-    sendRaw(F("\r\n"));
-
     diagStreamPrintLn();
 }
 
@@ -659,10 +656,8 @@ bool GprsSender::closeConnection( uint32_t timeout ) {
     return sendCommandWaitForReply(F("AT+CIPSHUT"), F("SHUT OK"), timeout);
 }
 
-// post to the server with the values specified since the last call to send
-// returns false on error. you can check the reason for the error with
-// lastErrorCode
-bool GprsSender::send() {
+// TODO - Doc
+bool GprsSender::prepareToSend() {
     if(!startConnection()){
         closeConnection();
 
@@ -670,36 +665,19 @@ bool GprsSender::send() {
         // set that here.
         return false;
     }
-    writeDefaultHeaders();
-    clearDataLength(); // Otherwise the first argument will have a &
+    writeDefaultHeaders(m_dataLength);
+    clearDataLength(); // Otherwise the first argument will have an &
 
-    // TODO - Break apart. User has to add data here
-
-    if(!sendData()){
-        closeConnection();
-        m_lastErrorCode = 2;
-        return false;
-    }
-
-    // Check for a response
-    // The timeout here depends on a lot: Network connection, server, etc.
-    m_lastStatusCode = readStatusCode(DEFAULT_NETWORK_TIMEOUT_MS);
-
-    // This last shut often needs a longer timeout for some reason
-    if( !closeConnection(10000) ){
-        m_lastErrorCode = 1;
-        return false;
-    }
-
-    m_lastErrorCode = 0;
-    return true;
+    // Blank line before data
+    sendRaw(F("\r\n"));
 }
 
 #ifdef USE_MANYLABS_DATA_AUTH
 
-// same as send, but also includes the Manylabs data authentication header
-// calculated from the provided keys
-bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
+// TODO - Doc
+// same as prepareToSend, but also includes the Manylabs data authentication
+// header calculated from the provided keys
+bool GprsSender::prepareToSend( const __FlashStringHelper *public_key,
     const __FlashStringHelper *private_key ) {
 
     if(!startConnection()){
@@ -709,16 +687,33 @@ bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
         // set that here.
         return false;
     }
-    writeDefaultHeaders();
+    writeDefaultHeaders(m_dataLength);
+    clearDataLength(); // Otherwise the first argument will have an &
 
     writeAuthHeader(public_key, private_key, m_paramBuf ,*m_serialStream);
-    clearDataLength(); // Otherwise the first argument will have a &
+}
+
+#endif
+
+// post to the server with the values specified since the last call to send
+// returns false on error. you can check the reason for the error with
+// lastErrorCode
+bool GprsSender::send() {
+    // if(!startConnection()){
+    //     closeConnection();
+
+    //     // startConnection sets it's own values for m_lastErrorCode, so don't
+    //     // set that here.
+    //     return false;
+    // }
+    // writeDefaultHeaders(m_dataLength);
+    // clearDataLength(); // Otherwise the first argument will have an &
 
     // TODO - Break apart. User has to add data here
 
     if(!sendData()){
-        m_lastErrorCode = 2;
         closeConnection();
+        m_lastErrorCode = 2;
         return false;
     }
 
@@ -735,8 +730,6 @@ bool GprsSender::sendWithManylabsDataAuth(const __FlashStringHelper *public_key,
     m_lastErrorCode = 0;
     return true;
 }
-
-#endif
 
 /**
  * Functions for communicating with the SIM module
