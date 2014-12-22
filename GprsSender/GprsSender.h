@@ -105,19 +105,24 @@ public:
     template <typename T> void add( const T *name, long value );
     template <typename T> void add( const T *name, unsigned long value );
 
+    // TODO - Doc
+    bool prepareToSend();
+
+    #ifdef USE_MANYLABS_DATA_AUTH
+
+    // TODO - Doc
+    // same as send, but also includes the Manylabs data authentication header
+    // calculated from the provided keys
+    bool prepareToSend( const __FlashStringHelper *public_key,
+        const __FlashStringHelper *private_key );
+
+    #endif
+
     // post to the server with the values specified since the last call to send
     // returns false on error. you can check the reason for the error with
     // lastErrorCode
     bool send();
 
-    #ifdef USE_MANYLABS_DATA_AUTH
-
-    // same as send, but also includes the Manylabs data authentication header
-    // calculated from the provided keys
-    bool sendWithManylabsDataAuth( const __FlashStringHelper *public_key,
-        const __FlashStringHelper *private_key );
-
-    #endif
 
     // retrieve the last HTTP status code (assuming the post was successful)
     int lastStatusCode(){ return m_lastStatusCode; }
@@ -670,6 +675,7 @@ bool GprsSender::prepareToSend() {
 
     // Blank line before data
     sendRaw(F("\r\n"));
+    return true;
 }
 
 #ifdef USE_MANYLABS_DATA_AUTH
@@ -691,6 +697,7 @@ bool GprsSender::prepareToSend( const __FlashStringHelper *public_key,
     clearDataLength(); // Otherwise the first argument will have an &
 
     writeAuthHeader(public_key, private_key, m_paramBuf ,*m_serialStream);
+    return true;
 }
 
 #endif
