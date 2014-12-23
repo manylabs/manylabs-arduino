@@ -28,7 +28,7 @@ public:
 
   // Reset the ManylabsDataAuth object. This should be called every time you
   // send data, before printing new data to the ManylabsDataAuth
-  void reset() {
+  void reset();
 
   // Write data to the ManylabsDataAuth. You can use all the same print methods
   // you can with the Serial object.
