@@ -89,7 +89,9 @@ public:
     // reboot the SIM module
     void reboot();
 
-    // add a value to transmit with the next call to send()
+    // add a value to be counted for the content-length header, or after calling
+    // prepareToSend, add a value to transmit with the next call to send()
+    //
     // the template allows these functions to accept const char * or
     // const FlashStringHelper *
     // this means you can call add( "this", 0 ) or add( F("this"), 1 )
@@ -101,12 +103,17 @@ public:
     template <typename T> void add( const T *name, long value );
     template <typename T> void add( const T *name, unsigned long value );
 
-    // TODO - Doc
+    // before calling prepareToSend, calling add will count the bytes of the
+    // data you provide (for the content-length header).
+    // after calling prepareToSend, calling add will write the data you provide
+    // to the SIM module for sending. call send when you've added all your data.
+    // returns false on error. you can check the reason for the
+    // error with lastErrorCode
     bool prepareToSend();
 
-    // post to the server with the values specified since the last call to send
-    // returns false on error. you can check the reason for the error with
-    // lastErrorCode
+    // post to the server with the values specified since the call to
+    // prepareToSend. returns false on error. you can check the reason for the
+    // error with lastErrorCode
     bool send();
 
 
@@ -211,7 +218,7 @@ private:
     // was constructed as: timestamp = millis() + some value
     bool timedOut( uint32_t timestamp );
 
-    // clears the parameter buffer
+    // clears the dataLength value in preparation for adding a new set of values
     void clearDataLength();
 
     // the length (in bytes) of the data to be sent
@@ -358,7 +365,12 @@ void GprsSender::reboot() {
  * Functions for adding data to be sent or counted (for content-length)
  */
 
-// add data to transmit with the next call to send
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add(const T *value) {
     if(m_dataCountMode == false){
@@ -371,7 +383,12 @@ void GprsSender::add(const T *value) {
 }
 
 
-// add a value to transmit with the next call to send()
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add( const T *name, const T *value ) {
     if(m_dataCountMode == false){
@@ -400,14 +417,24 @@ void GprsSender::add( const T *name, const T *value ) {
 }
 
 
-// add a value to transmit with the next call to send()
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add( const T *name, float value, byte decimalPlaces ) {
     add( name, (double) value, decimalPlaces );
 }
 
 
-// add a value to transmit with the next call to send()
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
 
@@ -437,14 +464,24 @@ void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
 }
 
 
-// add a value to transmit with the next call to send()
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add( const T *name, int value ) {
     add( name, (long) value );
 }
 
 
-// add a value to transmit with the next call to send()
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add( const T *name, long value ) {
     if(m_dataCountMode == false){
@@ -473,7 +510,12 @@ void GprsSender::add( const T *name, long value ) {
 }
 
 
-// add a value to transmit with the next call to send()
+// add a value to be counted for the content-length header, or after calling
+// prepareToSend, add a value to transmit with the next call to send()
+//
+// the template allows these functions to accept const char * or
+// const FlashStringHelper *
+// this means you can call add( "this", 0 ) or add( F("this"), 1 )
 template <typename T>
 void GprsSender::add( const T *name, unsigned long value ) {
     if(m_dataCountMode == false){
@@ -501,7 +543,7 @@ void GprsSender::add( const T *name, unsigned long value ) {
     }
 }
 
-// clears the parameter buffer
+// clears the dataLength value in preparation for adding a new set of values
 void GprsSender::clearDataLength() {
     m_dataLength = 0;
 }
@@ -647,7 +689,12 @@ bool GprsSender::closeConnection( uint32_t timeout ) {
     return sendCommandWaitForReply(F("AT+CIPSHUT"), F("SHUT OK"), timeout);
 }
 
-// TODO - Doc
+// before calling prepareToSend, calling add will count the bytes of the
+// data you provide (for the content-length header).
+// after calling prepareToSend, calling add will write the data you provide
+// to the SIM module for sending. call send when you've added all your data.
+// returns false on error. you can check the reason for the
+// error with lastErrorCode
 bool GprsSender::prepareToSend() {
     if(!startConnection()){
         closeConnection();
@@ -668,9 +715,9 @@ bool GprsSender::prepareToSend() {
     return true;
 }
 
-// post to the server with the values specified since the last call to send
-// returns false on error. you can check the reason for the error with
-// lastErrorCode
+// post to the server with the values specified since the call to
+// prepareToSend. returns false on error. you can check the reason for the
+// error with lastErrorCode
 bool GprsSender::send() {
 
     // Blank line before data
