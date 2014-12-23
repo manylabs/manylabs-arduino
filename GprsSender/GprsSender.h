@@ -194,7 +194,7 @@ private:
     bool startConnection();
 
     // write the default headers
-    void writeDefaultHeaders();
+    void writeDefaultHeaders( int contentLength );
 
     // tell the SIM module to send the data
     bool sendData();
@@ -602,7 +602,7 @@ bool GprsSender::startConnection() {
 }
 
 // write the default headers
-void GprsSender::writeDefaultHeaders(int contentLength) {
+void GprsSender::writeDefaultHeaders( int contentLength ) {
     flushInput();
     diagStreamPrint(F("->"));
     sendRaw(F("POST "));
@@ -665,8 +665,6 @@ bool GprsSender::prepareToSend() {
     // directly to the SIM module
     m_dataCountMode = false;
 
-    // Blank line before data
-    sendRaw(F("\r\n"));
     return true;
 }
 
@@ -674,6 +672,10 @@ bool GprsSender::prepareToSend() {
 // returns false on error. you can check the reason for the error with
 // lastErrorCode
 bool GprsSender::send() {
+
+    // Blank line before data
+    sendRaw(F("\r\n"));
+
     // Clear the data length. Otherwise the first argument will have an &
     clearDataLength();
 
