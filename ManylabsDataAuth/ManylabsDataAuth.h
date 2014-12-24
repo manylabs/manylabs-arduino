@@ -128,8 +128,8 @@ void ManylabsDataAuth::writeAuthHeader( Stream &stream ) {
   stream.print( F("\r\n") );
 }
 
-// Write the auth header to the given buffer. Specify the size of the buffer
-// in size. This includes "\r\n" at the end of the line.
+// Write the auth header to the given buffer. This includes "\r\n" at the end
+// of the line. Specify the size of the buffer in size.
 //
 // Note: The required buffer size is 93 + the length of your public key
 //
