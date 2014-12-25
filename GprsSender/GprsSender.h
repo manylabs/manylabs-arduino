@@ -13,6 +13,7 @@
     #include "WProgram.h"
 #endif
 
+#include <ManylabsDataAuth.h>
 #include <avr/wdt.h> // Watchdog timer
 
 // These defines control what server the GprsSender will post to
@@ -85,6 +86,9 @@ public:
     bool init( const __FlashStringHelper *apn,
         const __FlashStringHelper *apnUsername = 0,
         const __FlashStringHelper *apnPassword = 0 );
+
+    // add a ManyLabsDataAuth object to generate an authentication header
+    void addDataAuth( ManylabsDataAuth *dataAuth );
 
     // reboot the SIM module
     void reboot();
@@ -235,6 +239,9 @@ private:
     // stream for diagnostic output
     Stream *m_diagStream;
 
+    // data auth object for authentication header
+    ManyLabsDataAuth *m_manylabsDataAuth;
+
     NullStream m_nullStream;
 
     // used to disable diagnostics even when we have a diagnostic stream
@@ -283,6 +290,8 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream, Stream &diagStream )
     m_useDiagStream = true;
 
     m_dataCountMode = true;
+
+    m_manylabsDataAuth = NULL;
 }
 
 // Same as above but without diagnostics
@@ -299,6 +308,8 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream )
     m_useDiagStream = true;
 
     m_dataCountMode = true;
+
+    m_manylabsDataAuth = NULL;
 }
 
 // set network info, reboots the module (specific to the Adafruit FONA),
@@ -318,6 +329,10 @@ bool GprsSender::init( const __FlashStringHelper *apn,
 
     // Wait to attach to the network.
     return waitForNetworkReg();
+}
+
+void addDataAuth( ManylabsDataAuth *dataAuth ){
+    m_manylabsDataAuth = dataAuth;
 }
 
 // reboot the SIM module
