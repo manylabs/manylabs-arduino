@@ -89,6 +89,7 @@ void ManylabsDataAuth::reset() {
 // you can with the Serial object.
 size_t ManylabsDataAuth::write( uint8_t data ) {
   Sha256.write(data);
+  return 1; // 1 byte written
 }
 
 // get the resulting sha256 hash and convert it to hexidecimal
