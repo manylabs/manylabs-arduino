@@ -51,6 +51,7 @@
 
 #define diagStreamPrint(...) { if (m_diagStream && m_useDiagStream) m_diagStream->print(__VA_ARGS__); }
 #define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
+#define authPrint(...) { if(m_manylabsDataAuth) m_manylabsDataAuth->print(__VA_ARGS__); }
 
 // Utility for getting content length without writing to a buffer
 // http://forum.arduino.cc/index.php?topic=234635.msg1689266#msg1689266
