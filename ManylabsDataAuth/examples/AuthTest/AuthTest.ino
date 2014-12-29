@@ -18,14 +18,22 @@ void setup() {
     Serial.println("Starting Tests");
     Serial.println("==============");
 
+    // Initialize (or reinitialize) the authenticator.
+    dataAuth.init(F(PUBLIC_KEY), F(PRIVATE_KEY)); // This also calls reset()
+
+    // Add data to dataAuth. This works just as you would print data to Serial
+    dataAuth.print(F("dataSet=1"));
+    dataAuth.print(F("&temperature="));
+    dataAuth.print(22.01);
+    dataAuth.print(F("&humidity="));
+    dataAuth.print(55.3);
+
     // Write the header directly to the provided Stream.
-    generateAuthHeader();
     Serial.println("Write header to stream:");
     dataAuth.writeAuthHeader(Serial);
     Serial.println("==============");
 
     // Write the header to a buffer that's too small
-    generateAuthHeader();
     Serial.println("Write header to small buffer:");
     bool bufferLargeEnough = dataAuth.writeAuthHeader(smallBuffer, SMALL_BUFFER_SIZE);
     Serial.println(smallBuffer);
@@ -35,7 +43,6 @@ void setup() {
     Serial.println("==============");
 
     // Write the header to a large buffer
-    generateAuthHeader();
     Serial.println("Write header to large buffer:");
     bufferLargeEnough = dataAuth.writeAuthHeader(largeBuffer, LARGE_BUFFER_SIZE);
     Serial.print(largeBuffer);
@@ -43,23 +50,22 @@ void setup() {
         Serial.println("Buffer is too small.");
     }
     Serial.println("==============");
+
+    // Reset and write new data
+    Serial.println("Reset and write new data.");
+    dataAuth.reset();
+    dataAuth.print(F("dataSet=1"));
+    dataAuth.print(F("&temperature="));
+    dataAuth.print(22.00); // Only changed this
+    dataAuth.print(F("&humidity="));
+    dataAuth.print(55.3);
+
+    Serial.println("Write header to stream:");
+    dataAuth.writeAuthHeader(Serial);
+
+    Serial.println("==============");
     Serial.println("Tests Complete");
 }
 
 void loop() {
-}
-
-// Generate the authentication header. This process needs to be completed every
-// time you want to write the authentication header.
-void generateAuthHeader() {
-
-    // Initialize (or reinitialize) the authenticator.
-    dataAuth.init(F(PUBLIC_KEY), F(PRIVATE_KEY));
-
-    // Add data to dataAuth. This works just as you would print data to Serial
-    dataAuth.print(F("dataSet=1"));
-    dataAuth.print(F("&temperature="));
-    dataAuth.print(22.01);
-    dataAuth.print(F("&humidity="));
-    dataAuth.print(55.3);
 }
