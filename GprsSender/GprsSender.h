@@ -53,17 +53,6 @@
 #define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
 #define authPrint(...) { if(m_manylabsDataAuth) m_manylabsDataAuth->print(__VA_ARGS__); }
 
-// Utility for getting content length without writing to a buffer
-// http://forum.arduino.cc/index.php?topic=234635.msg1689266#msg1689266
-struct NullStream : public Stream {
-  NullStream( void ) { return; }
-  int available( void ) { return 0; }
-  int read( void ){ return -1; }
-  int peek( void ) { return -1; }
-  void flush( void ) { return; }
-  size_t write( uint8_t u_Data ){ return 0x01; }
-};
-
 //============================================
 // GPRS SENDER CLASS DEFINITION
 //============================================
@@ -171,6 +160,17 @@ public:
     void delayAndWdtReset( uint32_t ms );
 
 private:
+
+    // Utility for getting content length without writing to a buffer
+    // http://forum.arduino.cc/index.php?topic=234635.msg1689266#msg1689266
+    struct NullStream : public Stream {
+      NullStream( void ) { return; }
+      int available( void ) { return 0; }
+      int read( void ){ return -1; }
+      int peek( void ) { return -1; }
+      void flush( void ) { return; }
+      size_t write( uint8_t u_Data ){ return 0x01; }
+    };
 
     // send a command to the SIM module
     template <typename T> void sendCommand( const T *command );
@@ -293,6 +293,8 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream, Stream &diagStream )
     m_dataCountMode = true;
 
     m_manylabsDataAuth = NULL;
+
+    m_nullStream = NullStream();
 }
 
 // Same as above but without diagnostics
@@ -311,6 +313,8 @@ GprsSender::GprsSender( int resetPin, Stream &serialStream )
     m_dataCountMode = true;
 
     m_manylabsDataAuth = NULL;
+
+    m_nullStream = NullStream();
 }
 
 // set network info, reboots the module (specific to the Adafruit FONA),
@@ -395,6 +399,7 @@ void GprsSender::add(const T *value) {
     }else{
         size_t length = m_nullStream.print(value);
         m_dataLength += length;
+        authPrint(value);
     }
 }
 
@@ -422,11 +427,16 @@ void GprsSender::add( const T *name, const T *value ) {
         diagStreamPrint( value );
     }else{
         size_t length = 0;
-        if (m_dataLength)
+        if (m_dataLength){
             length += m_nullStream.print( F("&") );
+            authPrint( F("&") );
+        }
         length += m_nullStream.print( name );
+        authPrint( name );
         length += m_nullStream.print( F("=") );
+        authPrint( F("=") );
         length += m_nullStream.print( value );
+        authPrint( value );
 
         m_dataLength += length;
     }
