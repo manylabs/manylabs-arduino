@@ -247,7 +247,7 @@ private:
     Stream *m_diagStream;
 
     // data auth object for authentication header
-    ManyLabsDataAuth *m_manylabsDataAuth;
+    ManylabsDataAuth *m_manylabsDataAuth;
 
     NullStream m_nullStream;
 
