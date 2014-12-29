@@ -485,11 +485,16 @@ void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
         diagStreamPrint( value, decimalPlaces );
     }else{
         size_t length = 0;
-        if (m_dataLength)
+        if (m_dataLength){
             length += m_nullStream.print( PGMSTR(flash_ampersand) );
+            authPrint( PGMSTR(flash_ampersand) );
+        }
         length += m_nullStream.print( name );
+        authPrint( name );
         length += m_nullStream.print( PGMSTR(flash_equals) );
+        authPrint( PGMSTR(flash_equals) );
         length += m_nullStream.print( value, decimalPlaces );
+        authPrint( value, decimalPlaces );
 
         m_dataLength += length;
     }
@@ -531,11 +536,16 @@ void GprsSender::add( const T *name, long value ) {
         diagStreamPrint( value );
     }else{
         size_t length = 0;
-        if (m_dataLength)
+        if (m_dataLength){
             length += m_nullStream.print( PGMSTR(flash_ampersand) );
+            authPrint( PGMSTR(flash_ampersand) );
+        }
         length += m_nullStream.print( name );
+        authPrint( name );
         length += m_nullStream.print( PGMSTR(flash_equals) );
+        authPrint( PGMSTR(flash_equals) );
         length += m_nullStream.print( value );
+        authPrint( value );
 
         m_dataLength += length;
     }
@@ -565,11 +575,16 @@ void GprsSender::add( const T *name, unsigned long value ) {
         diagStreamPrint( value );
     }else{
         size_t length = 0;
-        if (m_dataLength)
+        if (m_dataLength){
             length += m_nullStream.print( PGMSTR(flash_ampersand) );
+            authPrint( PGMSTR(flash_ampersand) );
+        }
         length += m_nullStream.print( name );
+        authPrint( name );
         length += m_nullStream.print( PGMSTR(flash_equals) );
+        authPrint( PGMSTR(flash_equals) );
         length += m_nullStream.print( value );
+        authPrint( value );
 
         m_dataLength += length;
     }
