@@ -84,7 +84,7 @@ public:
         const __FlashStringHelper *apnPassword = 0 );
 
     // add a ManyLabsDataAuth object to generate an authentication header
-    void addDataAuth( ManylabsDataAuth *dataAuth );
+    void addManylabsDataAuth( ManylabsDataAuth *dataAuth );
 
     // reboot the SIM module
     void reboot();
@@ -342,7 +342,7 @@ bool GprsSender::init( const __FlashStringHelper *apn,
     return waitForNetworkReg();
 }
 
-void GprsSender::addDataAuth( ManylabsDataAuth *dataAuth ){
+void GprsSender::addManylabsDataAuth( ManylabsDataAuth *dataAuth ){
     m_manylabsDataAuth = dataAuth;
 }
 
@@ -751,6 +751,15 @@ bool GprsSender::prepareToSend() {
         return false;
     }
     writeDefaultHeaders(m_dataLength);
+
+    // Write auth header if we've been given a ManylabsDataAuth object
+    if(m_manylabsDataAuth){
+        if(m_serialStream)
+            m_manylabsDataAuth->writeAuthHeader(*m_serialStream);
+        if(m_diagStream && m_useDiagStream)
+            m_manylabsDataAuth->writeAuthHeader(*m_diagStream);
+        m_manylabsDataAuth->reset(); // Reset the auth object for the next round
+    }
 
     // Clear the data length. Otherwise the first argument will have an &
     clearDataLength();
