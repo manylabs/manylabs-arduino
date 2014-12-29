@@ -402,6 +402,10 @@ void GprsSender::add(const T *value) {
     if(m_dataCountMode == false){
         m_serialStream->print(value);
         diagStreamPrint(value);
+
+        // When we're not counting the data we don't care about the actual
+        // length, just that there is at least one parameter.
+        m_dataLength = 1;
     }else{
         size_t length = m_nullStream.print(value);
         m_dataLength += length;
@@ -431,6 +435,10 @@ void GprsSender::add( const T *name, const T *value ) {
 
         m_serialStream->print( value );
         diagStreamPrint( value );
+
+        // When we're not counting the data we don't care about the actual
+        // length, just that there is at least one parameter.
+        m_dataLength = 1;
     }else{
         size_t length = 0;
         if (m_dataLength){
@@ -483,6 +491,10 @@ void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
 
         m_serialStream->print( value, decimalPlaces );
         diagStreamPrint( value, decimalPlaces );
+
+        // When we're not counting the data we don't care about the actual
+        // length, just that there is at least one parameter.
+        m_dataLength = 1;
     }else{
         size_t length = 0;
         if (m_dataLength){
@@ -534,6 +546,10 @@ void GprsSender::add( const T *name, long value ) {
 
         m_serialStream->print( value );
         diagStreamPrint( value );
+
+        // When we're not counting the data we don't care about the actual
+        // length, just that there is at least one parameter.
+        m_dataLength = 1;
     }else{
         size_t length = 0;
         if (m_dataLength){
@@ -573,6 +589,10 @@ void GprsSender::add( const T *name, unsigned long value ) {
 
         m_serialStream->print( value );
         diagStreamPrint( value );
+
+        // When we're not counting the data we don't care about the actual
+        // length, just that there is at least one parameter.
+        m_dataLength = 1;
     }else{
         size_t length = 0;
         if (m_dataLength){
