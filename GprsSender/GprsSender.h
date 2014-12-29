@@ -53,6 +53,12 @@
 #define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
 #define authPrint(...) { if(m_manylabsDataAuth) m_manylabsDataAuth->print(__VA_ARGS__); }
 
+
+// Commonly Used Flash Strings
+#define PGMSTR(x) (__FlashStringHelper*)(x)
+const char flash_ampersand[] PROGMEM  = "&";
+const char flash_equals[] PROGMEM  = "=";
+
 //============================================
 // GPRS SENDER CLASS DEFINITION
 //============================================
@@ -414,27 +420,27 @@ template <typename T>
 void GprsSender::add( const T *name, const T *value ) {
     if(m_dataCountMode == false){
         if (m_dataLength){
-            m_serialStream->print( F("&") );
-            diagStreamPrint( F("&") );
+            m_serialStream->print( PGMSTR(flash_ampersand) );
+            diagStreamPrint( PGMSTR(flash_ampersand) );
         }
         m_serialStream->print( name );
         diagStreamPrint( name );
 
-        m_serialStream->print( F("=") );
-        diagStreamPrint( F("=") );
+        m_serialStream->print( PGMSTR(flash_equals) );
+        diagStreamPrint( PGMSTR(flash_equals) );
 
         m_serialStream->print( value );
         diagStreamPrint( value );
     }else{
         size_t length = 0;
         if (m_dataLength){
-            length += m_nullStream.print( F("&") );
-            authPrint( F("&") );
+            length += m_nullStream.print( PGMSTR(flash_ampersand) );
+            authPrint( PGMSTR(flash_ampersand) );
         }
         length += m_nullStream.print( name );
         authPrint( name );
-        length += m_nullStream.print( F("=") );
-        authPrint( F("=") );
+        length += m_nullStream.print( PGMSTR(flash_equals) );
+        authPrint( PGMSTR(flash_equals) );
         length += m_nullStream.print( value );
         authPrint( value );
 
@@ -466,23 +472,23 @@ void GprsSender::add( const T *name, double value, byte decimalPlaces ) {
 
     if(m_dataCountMode == false){
         if (m_dataLength){
-            m_serialStream->print( F("&") );
-            diagStreamPrint( F("&") );
+            m_serialStream->print( PGMSTR(flash_ampersand) );
+            diagStreamPrint( PGMSTR(flash_ampersand) );
         }
         m_serialStream->print( name );
         diagStreamPrint( name );
 
-        m_serialStream->print( F("=") );
-        diagStreamPrint( F("=") );
+        m_serialStream->print( PGMSTR(flash_equals) );
+        diagStreamPrint( PGMSTR(flash_equals) );
 
         m_serialStream->print( value, decimalPlaces );
         diagStreamPrint( value, decimalPlaces );
     }else{
         size_t length = 0;
         if (m_dataLength)
-            length += m_nullStream.print( F("&") );
+            length += m_nullStream.print( PGMSTR(flash_ampersand) );
         length += m_nullStream.print( name );
-        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( PGMSTR(flash_equals) );
         length += m_nullStream.print( value, decimalPlaces );
 
         m_dataLength += length;
@@ -512,23 +518,23 @@ template <typename T>
 void GprsSender::add( const T *name, long value ) {
     if(m_dataCountMode == false){
         if (m_dataLength){
-            m_serialStream->print( F("&") );
-            diagStreamPrint( F("&") );
+            m_serialStream->print( PGMSTR(flash_ampersand) );
+            diagStreamPrint( PGMSTR(flash_ampersand) );
         }
         m_serialStream->print( name );
         diagStreamPrint( name );
 
-        m_serialStream->print( F("=") );
-        diagStreamPrint( F("=") );
+        m_serialStream->print( PGMSTR(flash_equals) );
+        diagStreamPrint( PGMSTR(flash_equals) );
 
         m_serialStream->print( value );
         diagStreamPrint( value );
     }else{
         size_t length = 0;
         if (m_dataLength)
-            length += m_nullStream.print( F("&") );
+            length += m_nullStream.print( PGMSTR(flash_ampersand) );
         length += m_nullStream.print( name );
-        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( PGMSTR(flash_equals) );
         length += m_nullStream.print( value );
 
         m_dataLength += length;
@@ -546,23 +552,23 @@ template <typename T>
 void GprsSender::add( const T *name, unsigned long value ) {
     if(m_dataCountMode == false){
         if (m_dataLength){
-            m_serialStream->print( F("&") );
-            diagStreamPrint( F("&") );
+            m_serialStream->print( PGMSTR(flash_ampersand) );
+            diagStreamPrint( PGMSTR(flash_ampersand) );
         }
         m_serialStream->print( name );
         diagStreamPrint( name );
 
-        m_serialStream->print( F("=") );
-        diagStreamPrint( F("=") );
+        m_serialStream->print( PGMSTR(flash_equals) );
+        diagStreamPrint( PGMSTR(flash_equals) );
 
         m_serialStream->print( value );
         diagStreamPrint( value );
     }else{
         size_t length = 0;
         if (m_dataLength)
-            length += m_nullStream.print( F("&") );
+            length += m_nullStream.print( PGMSTR(flash_ampersand) );
         length += m_nullStream.print( name );
-        length += m_nullStream.print( F("=") );
+        length += m_nullStream.print( PGMSTR(flash_equals) );
         length += m_nullStream.print( value );
 
         m_dataLength += length;
