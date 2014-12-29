@@ -342,7 +342,7 @@ bool GprsSender::init( const __FlashStringHelper *apn,
     return waitForNetworkReg();
 }
 
-void addDataAuth( ManylabsDataAuth *dataAuth ){
+void GprsSender::addDataAuth( ManylabsDataAuth *dataAuth ){
     m_manylabsDataAuth = dataAuth;
 }
 
