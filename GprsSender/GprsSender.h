@@ -1084,16 +1084,12 @@ int GprsSender::readStatusCode(uint32_t timeout) {
     // We're just going to look for a number that's greater than 100 and less
     // than 600
     int statusCode = -1;
-    diagStreamPrintLn(F("Setting timeout"));
     m_serialStream->setTimeout(timeout); // Set serial timeout
-    diagStreamPrintLn(F("Finding HTTP/1.1"));
     if(m_serialStream->find("HTTP/1.1 ")){
-        diagStreamPrintLn(F("Parsing Status Code"));
         statusCode = m_serialStream->parseInt();
     }
     flushInput(false); // Flush the reset of the response
 
-    diagStreamPrintLn(F("Resetting timeout"));
     m_serialStream->setTimeout(1000); // Set serial timeout back to default
 
     if(statusCode < 100 || statusCode > 600){
