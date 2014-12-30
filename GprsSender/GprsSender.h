@@ -734,9 +734,9 @@ void GprsSender::writeDefaultHeaders( int contentLength ) {
 // tell the SIM module to send the data
 bool GprsSender::sendData() {
 
-    // Send Ctrl-Z: ((char)26)
     flushInput();
-    diagStreamPrint(F("->"));
+
+    // Send Ctrl-Z: ((char)26)
     sendRaw((char)26);
     diagStreamPrintLn();
 
@@ -816,6 +816,8 @@ bool GprsSender::send() {
     // Check for a response
     // The timeout here depends on a lot: Network connection, server, etc.
     m_lastStatusCode = readStatusCode(DEFAULT_NETWORK_TIMEOUT_MS);
+    diagStreamPrint(F("status code: "));
+    diagStreamPrintLn(m_lastStatusCode);
 
     // This last shut often needs a longer timeout for some reason
     if( !closeConnection(10000) ){
@@ -982,6 +984,9 @@ bool GprsSender::waitForNetworkReg(uint32_t timeout) {
             }
         }
     }
+    flushInput(false); // Flush the reset of the response
+    diagStreamPrint(F("status: "));
+    diagStreamPrintLn(statusCode);
     if(!success){
         diagStreamPrintLn(F("<--<timeout>"));
     }
@@ -1009,6 +1014,9 @@ int GprsSender::signalStrength( uint32_t timeout ) {
     }
     flushInput(false); // Flush the reset of the response
     m_serialStream->setTimeout(1000); // Set serial timeout back to default
+
+    diagStreamPrint(F("rssi: "));
+    diagStreamPrintLn(signalStrength);
 
     return signalStrength;
 }
