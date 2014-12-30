@@ -1,4 +1,4 @@
-// Manylabs Data API Authentication Library 0.4.0
+// Manylabs Data API Authentication Library 0.2.0
 // copyright Manylabs 2014; MIT license
 // --------
 // This library provides a simple way to generate authentication headers for the

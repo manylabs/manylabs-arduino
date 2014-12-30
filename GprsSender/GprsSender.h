@@ -1,4 +1,4 @@
-// Manylabs GprsSender Library 0.1.0
+// Manylabs GprsSender Library 0.2.0
 // copyright Manylabs 2014; MIT license
 // --------
 // This library provides a simple interface for sending data to a server via
