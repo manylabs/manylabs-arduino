@@ -1,4 +1,4 @@
-// Manylabs GprsSender Library 0.2.0
+// Manylabs GprsSender Library 0.3.0
 // copyright Manylabs 2014; MIT license
 // --------
 // This library provides a simple interface for sending data to a server via
@@ -56,8 +56,12 @@
 
 // Commonly Used Flash Strings
 #define PGMSTR(x) (__FlashStringHelper*)(x)
-const char flash_ampersand[] PROGMEM  = "&";
-const char flash_equals[] PROGMEM  = "=";
+const char flash_ampersand PROGMEM  = '&';
+const char flash_equals PROGMEM  = '=';
+const char flash_ok[] = "OK";
+const char flash_r_arrow[] = "->";
+const char flash_l_arrow[] = "<-";
+const char flash_timeout[] = "<timeout>";
 
 //============================================
 // GPRS SENDER CLASS DEFINITION
@@ -366,7 +370,7 @@ void GprsSender::reboot() {
 
     // Check a few times for an OK response from the SIM module
     for(int i=0; i<3; i++){
-        if(sendCommandWaitForReply(F("AT"), F("OK"))){
+        if(sendCommandWaitForReply(F("AT"), PGMSTR(flash_ok))){
             break;
         }
         delayAndWdtReset(100);
@@ -381,10 +385,10 @@ void GprsSender::reboot() {
     m_dataCountMode = true;
 
     // Disable echoing commands
-    sendCommandWaitForReply(F("ATE0"), F("OK"));
+    sendCommandWaitForReply(F("ATE0"), PGMSTR(flash_ok));
 
     // Show error codes
-    sendCommandWaitForReply(F("AT+CMEE=1"), F("OK"));
+    sendCommandWaitForReply(F("AT+CMEE=1"), PGMSTR(flash_ok));
 }
 
 /**
@@ -624,12 +628,12 @@ void GprsSender::clearDataLength() {
 bool GprsSender::startConnection() {
 
     // Attach to GPRS service (CGATT) - Max response time of 10 sec
-    if( !sendCommandWaitForReply(F("AT+CGATT=1"), F("OK"), 10000) ){
+    if( !sendCommandWaitForReply(F("AT+CGATT=1"), PGMSTR(flash_ok), 10000) ){
         diagStreamPrintLn(F("CGATT Fail - Retrying"));
 
         // If the SIM module hasn't finished registering with the network, this
         // will fail on the first try. Protect against that here.
-        if( !sendCommandWaitForReply(F("AT+CGATT=1"), F("OK"), 10000) ){
+        if( !sendCommandWaitForReply(F("AT+CGATT=1"), PGMSTR(flash_ok), 10000) ){
             diagStreamPrintLn(F("CGATT Fail"));
             m_lastErrorCode = 1;
             return false;
@@ -639,7 +643,7 @@ bool GprsSender::startConnection() {
     // Set credentials (CSTT) - This we need to include the credentials here so
     // we handle this a bit differently than some other commands
     flushInput();
-    diagStreamPrint(F("->"));
+    diagStreamPrint(PGMSTR(flash_r_arrow));
     sendRaw(F("AT+CSTT=\""));
     sendRaw(m_apn);
     sendRaw(F("\""));
@@ -655,7 +659,7 @@ bool GprsSender::startConnection() {
     }
     sendRaw(F("\r"));
     diagStreamPrintLn();
-    if( !waitForReply(F("OK")) ){
+    if( !waitForReply(PGMSTR(flash_ok)) ){
         diagStreamPrintLn(F("CSTT Fail"));
         m_lastErrorCode = 1;
         return false;
@@ -663,7 +667,7 @@ bool GprsSender::startConnection() {
 
     // Start wireless connection (CIICR)
     // Every once in a while this takes quite a bit of time.
-    if( !sendCommandWaitForReply(F("AT+CIICR"), F("OK"), DEFAULT_NETWORK_TIMEOUT_MS) ){
+    if( !sendCommandWaitForReply(F("AT+CIICR"), PGMSTR(flash_ok), DEFAULT_NETWORK_TIMEOUT_MS) ){
         diagStreamPrintLn(F("CIICR Fail"));
         m_lastErrorCode = 1;
         return false;
@@ -679,14 +683,14 @@ bool GprsSender::startConnection() {
 
     // Open the connection to the server (CIPSTART)
     flushInput();
-    diagStreamPrint(F("->"));
+    diagStreamPrint(PGMSTR(flash_r_arrow));
     sendRaw(F("AT+CIPSTART=\"TCP\",\""));
     sendRaw(F(GPRS_POST_HOST)); // Server
     sendRaw(F("\",\""));
     sendRaw(F(GPRS_POST_PORT)); // Port
     sendRaw(F("\"\r"));
     diagStreamPrintLn();
-    if( !waitForReply(F("OK")) ){
+    if( !waitForReply(PGMSTR(flash_ok)) ){
         diagStreamPrintLn(F("CIPSTART Fail"));
         m_lastErrorCode = 1;
         return false;
@@ -713,7 +717,7 @@ bool GprsSender::startConnection() {
 // write the default headers
 void GprsSender::writeDefaultHeaders( int contentLength ) {
     flushInput();
-    diagStreamPrint(F("->"));
+    diagStreamPrint(PGMSTR(flash_r_arrow));
     sendRaw(F("POST "));
     sendRaw(F(GPRS_POST_PATH));
     sendRaw(F(" HTTP/1.1\r\n"));
@@ -868,7 +872,7 @@ void GprsSender::sendCommand( const T *command ) {
     flushInput();
     m_serialStream->print(command);
     m_serialStream->print("\r");
-    diagStreamPrint(F("->"));
+    diagStreamPrint(PGMSTR(flash_r_arrow));
     diagStreamPrintLn(command);
 }
 
@@ -891,7 +895,7 @@ bool GprsSender::waitForReply( const __FlashStringHelper *reply,
     uint32_t timeout ) {
 
     // While read until timeout
-    diagStreamPrint(F("<-"));
+    diagStreamPrint(PGMSTR(flash_l_arrow));
     bool found = false;
     while(readLine(timeout) >= 0){
 
@@ -913,7 +917,7 @@ bool GprsSender::waitForPrompt( uint32_t timeout ) {
     // The prompt is a bit different than other replies.
     // It comes as "<CR><LF>> ". (That last part is the ">" character followed
     // by a space).
-    diagStreamPrint(F("<-"));
+    diagStreamPrint(PGMSTR(flash_l_arrow));
     uint32_t timestamp = millis() + timeout;
     m_simBufPos = 0;
     bool replyStarted = false;
@@ -945,7 +949,7 @@ bool GprsSender::waitForPrompt( uint32_t timeout ) {
             }
         }
     }
-    diagStreamPrintLn(F("<timeout>"));
+    diagStreamPrintLn(PGMSTR(flash_timeout));
     m_simBuf[m_simBufPos] = 0;
     return false;
 }
@@ -988,7 +992,8 @@ bool GprsSender::waitForNetworkReg(uint32_t timeout) {
     diagStreamPrint(F("status: "));
     diagStreamPrintLn(statusCode);
     if(!success){
-        diagStreamPrintLn(F("<--<timeout>"));
+        diagStreamPrint(PGMSTR(flash_l_arrow));
+        diagStreamPrintLn(PGMSTR(flash_timeout));
     }
     return success;
 }
@@ -1079,7 +1084,7 @@ int GprsSender::readLine(uint32_t timeout) {
             }
         }
     }
-    diagStreamPrintLn(F("<timeout>"));
+    diagStreamPrintLn(PGMSTR(flash_timeout));
     m_simBuf[m_simBufPos] = 0;
     return -1;
 }
