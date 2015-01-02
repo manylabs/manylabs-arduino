@@ -89,7 +89,7 @@ void ManylabsDataAuth::reset() {
 
   Sha256.init();
   Sha256.print( m_privateKey );
-  Sha256.print( F(";") );
+  Sha256.print( ';' );
 }
 
 // Write data to the ManylabsDataAuth. You can use all the same print methods
@@ -132,7 +132,7 @@ void ManylabsDataAuth::writeAuthHeader( Stream &stream ) {
   // where hashedData is the sha256 hash of: privateKey;data
   stream.print( F("manydata-authentication: ") );
   stream.print( m_publicKey );
-  stream.print( F(":") );
+  stream.print( ':' );
 
   char hexHash[ 65 ]; // This _must_ be 65 characters
   createHexHash( hexHash );
