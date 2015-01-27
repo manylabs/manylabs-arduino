@@ -817,7 +817,7 @@ bool GprsSender::send() {
     // for the content-length header
     m_dataCountMode = true;
 
-    if(!sendData()){
+    if( !sendData() ){
         closeConnection();
         m_lastErrorCode = 2;
         return false;
@@ -1019,12 +1019,15 @@ int GprsSender::signalStrength( uint32_t timeout ) {
     // We're looking for the rssi value
     int signalStrength = -1;
     sendCommand(F("AT+CSQ"));
-    m_serialStream->setTimeout(timeout); // Set serial timeout
-    if(m_serialStream->find("+CSQ: ")){
-        signalStrength = m_serialStream->parseInt();
+
+    uint32_t timestamp = millis() + timeout;
+    while( !timedOut(timestamp) ){
+        if(m_serialStream->find("+CSQ: ")){
+            signalStrength = m_serialStream->parseInt();
+        }
     }
+
     flushInput(false); // Flush the reset of the response
-    m_serialStream->setTimeout(1000); // Set serial timeout back to default
 
     diagStreamPrint(F("rssi: "));
     diagStreamPrintLn(signalStrength);
@@ -1103,13 +1106,15 @@ int GprsSender::readStatusCode(uint32_t timeout) {
     // We're just going to look for a number that's greater than 100 and less
     // than 600
     int statusCode = -1;
-    m_serialStream->setTimeout(timeout); // Set serial timeout
-    if(m_serialStream->find("HTTP/1.1 ")){
-        statusCode = m_serialStream->parseInt();
-    }
-    flushInput(false); // Flush the reset of the response
 
-    m_serialStream->setTimeout(1000); // Set serial timeout back to default
+    uint32_t timestamp = millis() + timeout;
+    while( !timedOut(timestamp) ){
+        if(m_serialStream->find("HTTP/1.1 ")){
+            statusCode = m_serialStream->parseInt();
+        }
+    }
+
+    flushInput(false); // Flush the reset of the response
 
     if(statusCode < 100 || statusCode > 600){
         return -1;
