@@ -671,7 +671,7 @@ bool GprsSender::startConnection() {
         return false;
     }
 
-    // Reset PDP context (CIPSHUT). Otherwise we can sometime get stuck in the
+    // Reset PDP context (CIPSHUT). Otherwise we can sometimes get stuck in the
     // "PDP DEACT" state
     if( !closeConnection() ){
         diagStreamPrintLn(F("CIPSHUT Fail"));
