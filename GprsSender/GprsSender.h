@@ -763,23 +763,34 @@ bool GprsSender::closeConnection( uint32_t timeout ) {
 // returns false on error. you can check the reason for the
 // error with lastErrorCode
 bool GprsSender::prepareToSend() {
-    if(!startConnection()){
-        closeConnection();
+    bool connectionOpened = startConnection();
+
+    if(connectionOpened){
+
+        writeDefaultHeaders(m_dataLength);
+
+        // Write auth header if we've been given a ManylabsDataAuth object
+        if(m_manylabsDataAuth){
+            if(m_serialStream){
+                m_manylabsDataAuth->writeAuthHeader(*m_serialStream);
+            }
+            if(m_diagStream && m_useDiagStream){
+                m_manylabsDataAuth->writeAuthHeader(*m_diagStream);
+            }
+        }
+
+        // Blank line before data
+        sendRaw(F("\r\n"));
+
+    }else{
 
         // startConnection sets it's own values for m_lastErrorCode, so don't
         // set that here.
-        return false;
-    }
-    writeDefaultHeaders(m_dataLength);
 
-    // Write auth header if we've been given a ManylabsDataAuth object
-    if(m_manylabsDataAuth){
-        if(m_serialStream)
-            m_manylabsDataAuth->writeAuthHeader(*m_serialStream);
-        if(m_diagStream && m_useDiagStream)
-            m_manylabsDataAuth->writeAuthHeader(*m_diagStream);
-        m_manylabsDataAuth->reset(); // Reset the auth object for the next round
+        closeConnection();
     }
+
+    m_manylabsDataAuth->reset(); // Reset the auth object for the next round
 
     // Clear the data length. Otherwise the first argument will have an &
     clearDataLength();
@@ -788,10 +799,7 @@ bool GprsSender::prepareToSend() {
     // directly to the SIM module
     m_dataCountMode = false;
 
-    // Blank line before data
-    sendRaw(F("\r\n"));
-
-    return true;
+    return connectionOpened;
 }
 
 // post to the server with the values specified since the call to
