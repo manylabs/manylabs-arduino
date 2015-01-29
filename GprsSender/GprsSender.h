@@ -49,6 +49,9 @@
 // Default timeout for network registration. (Connecting to the cell network)
 #define DEFAULT_NETWORK_REG_TIMEOUT_MS 60000
 
+// Number of times to retry closeConnection
+#define CLOSE_RETRY_COUNT 3
+
 #define diagStreamPrint(...) { if (m_diagStream && m_useDiagStream) m_diagStream->print(__VA_ARGS__); }
 #define diagStreamPrintLn(...) { if (m_diagStream && m_useDiagStream) m_diagStream->println(__VA_ARGS__); }
 #define authPrint(...) { if(m_manylabsDataAuth) m_manylabsDataAuth->print(__VA_ARGS__); }
@@ -749,11 +752,17 @@ bool GprsSender::sendData() {
 }
 
 // close the GPRS connection - Sometimes this takes a bit longer, so it
-// defaults to a double timeout
+// defaults to a double timeout. This will retry up to CLOSE_RETRY_COUNT times.
 bool GprsSender::closeConnection( uint32_t timeout ) {
 
-    // Close the connection (CIPSHUT)
-    return sendCommandWaitForReply(F("AT+CIPSHUT"), F("SHUT OK"), timeout);
+    // Close the connection (CIPSHUT). Retry up to retry count
+    for(int i = 0; i < CLOSE_RETRY_COUNT; ++i){
+        wdt_reset();
+        if(sendCommandWaitForReply(F("AT+CIPSHUT"), F("SHUT OK"), timeout)){
+            return true;
+        }
+    }
+    return false;
 }
 
 // before calling prepareToSend, calling add will count the bytes of the
