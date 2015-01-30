@@ -791,7 +791,18 @@ bool GprsSender::prepareToSend() {
         // Blank line before data
         sendRaw(F("\r\n"));
 
+        // Set the count mode to false. This means calling add will send the
+        // data directly to the SIM module
+        m_dataCountMode = false;
+
     }else{
+
+        // If we fail to open the connection, then we shouldn't progress to send
+        // So we need to set m_dataCountMode = true
+
+        // Set the count mode to true. This means calling add will count the
+        // bytes for the content-length header
+        m_dataCountMode = true;
 
         // startConnection sets it's own values for m_lastErrorCode, so don't
         // set that here.
@@ -803,10 +814,6 @@ bool GprsSender::prepareToSend() {
 
     // Clear the data length. Otherwise the first argument will have an &
     clearDataLength();
-
-    // Set the count mode to false. This means calling add will send the data
-    // directly to the SIM module
-    m_dataCountMode = false;
 
     return connectionOpened;
 }
