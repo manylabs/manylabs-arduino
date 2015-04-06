@@ -1312,6 +1312,8 @@ public:
 		if (_initDone == false)
 			init();
 
+		float temperature;
+		float humidity;
 		uint8_t status = readTemperatureAndHumidity(temperature, humidity);
 		if(status == 0){
 			_values[ 0 ] = temperature;
@@ -1358,12 +1360,7 @@ private:
 
 		// According to the data sheet, the measurement cycle is typically ~36.56 ms
 		// We'll give a little extra time
-		#ifdef USE_GSM
-			gprsSender.delayAndWdtReset(50);
-		#else
-			wdt_reset();
-			delay(50)
-		#endif
+		delay(50);
 
 		// Request data
 		uint8_t bytesReceived = Wire.requestFrom((int)address, (int)4);
