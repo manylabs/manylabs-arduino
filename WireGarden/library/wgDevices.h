@@ -21,7 +21,7 @@
 #if defined(USE_ATLAS_SERIAL_DEVICE) || defined(USE_MAXBOTIX_SERIAL_DEVICE) || defined(USE_GPS_DEVICE)
 #define USE_SERIAL_DEVICE
 #endif
-#if defined(USE_GROVE_COLOR_DEVICE) || defined(USE_GROVE_MOTOR_DEVICE) || defined(USE_MINI_PH_DEVICE)
+#if defined(USE_GROVE_COLOR_DEVICE) || defined(USE_GROVE_MOTOR_DEVICE) || defined(USE_MINI_PH_DEVICE) || defined(USE_HIH6130_DEVICE)
 #include <Wire.h>
 #endif
 #ifdef USE_DHT_DEVICE
@@ -36,6 +36,10 @@
 #ifdef USE_BMP085_DEVICE
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
+#endif
+#ifdef USE_BMP180_DEVICE
+#include <Wire.h>
+#include <Barometer.h>
 #endif
 #ifdef USE_SERIAL_DEVICE
 #include <SoftwareSerial.h>
@@ -1287,6 +1291,122 @@ private:
 
 
 //============================================
+// HIH6130 TEMPERATURE / HUMIDITY SENSOR
+//============================================
+
+
+#ifdef USE_HIH6130_DEVICE
+class HIH6130Device : public Device {
+public:
+
+	//does not take pin since I2C
+	HIH6130Device() : Device( 0 ){
+		_initDone = false;
+	}
+
+	// two values: temperature and humidity
+	int valueCount() { return 2; }
+
+	// returns temperature (degrees C) and humidity
+	float *values() {
+		if (_initDone == false)
+			init();
+
+		uint8_t status = readTemperatureAndHumidity(temperature, humidity);
+		if(status == 0){
+			_values[ 0 ] = temperature;
+			_values[ 1 ] = humidity;
+		}
+		return _values;
+	}
+
+	// last temperature value (degrees C); assumes called refresh()
+	inline float temperature() const { return _values[ 0 ]; }
+
+	// last humidity value (percent); assumes called refresh()
+	inline float humidity() const { return _values[ 1 ]; }
+
+private:
+
+	float _values[ 2 ];
+	bool _initDone;
+
+	void init(){
+		Wire.begin();
+		_initDone = true;
+	}
+
+	// Takes a float for temperature and humidity and fills them with the current
+	// values.
+	// Returns a status code:
+	// 0: Normal
+	// 1: Stale - this data has already been read
+	// 2: Command Mode - the sensor is in command mode
+	// 3: Diagnostic - The sensor has had a diagnostic condition and data is
+	//    invalid
+	// 4: Invalid - The sensor did not return 4 bytes of data. Usually this means
+	//    it's not attached.
+	uint8_t readTemperatureAndHumidity( float &temperature_c, float &humidity_percent ) {
+		// From: http://www.phanderson.com/arduino/hih6130.html
+		uint8_t address = 0x27;
+		uint8_t humHigh, humLow, tempHigh, tempLow, status;
+		uint16_t humData, tempData;
+
+		// Request read
+		Wire.beginTransmission(address);
+		Wire.endTransmission();
+
+		// According to the data sheet, the measurement cycle is typically ~36.56 ms
+		// We'll give a little extra time
+		#ifdef USE_GSM
+			gprsSender.delayAndWdtReset(50);
+		#else
+			wdt_reset();
+			delay(50)
+		#endif
+
+		// Request data
+		uint8_t bytesReceived = Wire.requestFrom((int)address, (int)4);
+		if(bytesReceived != 4){
+
+			// This is our own error to specify that we didn't receive 4 bytes from the
+			// sensor.
+			return 4; // temp and humidity will be unchanged
+		}
+
+		humHigh  = Wire.read();
+		humLow   = Wire.read();
+		tempHigh = Wire.read();
+		tempLow  = Wire.read();
+
+		// Status is the top two bits of the high humidity byte
+		status = (humHigh >> 6) & 0x03;
+		if(status == 3){
+			return status; // temp and humidity will be unchanged
+		}
+
+		// Keep the rest
+		humHigh = humHigh & 0x3f;
+
+		// OR in the low bytes
+		humData  = (((uint16_t)humHigh)  << 8) | humLow;
+		tempData = (((uint16_t)tempHigh) << 8) | tempLow;
+
+		// The bottom two bits of the low temp byte are invalid, so we'll remove
+		// those
+		tempData = tempData >> 2;
+
+		// Convert to floating point
+		humidity_percent = (float) humData * 6.10e-3; // 100 / (2^14 - 1)
+		temperature_c = (float) tempData * 1.007e-2 - 40.0; // 165 / (2^14 - 1)
+
+		return status;
+	}
+};
+#endif // USE_DHT_DEVICE
+
+
+//============================================
 // BMP085 BAROMETRIC PRESSURE AND TEMPERATURE SENSOR
 //============================================
 
@@ -1357,6 +1477,88 @@ private:
 	float _values[ 3 ];
 };
 #endif // USE_BMP085_DEVICE
+
+
+//============================================
+// BMP180 BAROMETRIC PRESSURE AND TEMPERATURE SENSOR
+//============================================
+
+
+#ifdef USE_BMP180_DEVICE
+class BMP180Device : public Device {
+public:
+
+	// initialize barometric pressure sensor; does not take pin since I2C; does take extra arguments
+	BMP180Device() : Device( 0 ) {
+		_bmp = NULL;
+		_pressureAtSeaLevel = 101325; // Use 1 atm if no additional parameter is given
+	}
+
+	BMP180Device( float pressureAtSeaLevel ) : Device( 0 ) {
+		_bmp = NULL;
+		_pressureAtSeaLevel = pressureAtSeaLevel;
+	}
+
+	// initialize barometric pressure sensor; does not take pin since I2C;
+	// arguments: pressure at sea level
+	BMP180Device( char *args[], int argCount ) : Device( 0 ) {
+		if (argCount >= 1) {
+			_pressureAtSeaLevel = (float) atof( args[ 0 ] );
+		}
+	}
+
+	~BMP180Device(){
+		delete _bmp;
+	}
+
+	// three values: temperature, pressure, and altitude
+	int valueCount() { return 3; }
+
+	// returns temperature (degrees C), pressure (pascals), and altitude (meters)
+	float *values() {
+		if (_bmp == NULL){
+			init();
+		}
+		float temp = _bmp->bmp085GetTemperature(_bmp->bmp085ReadUT());
+		long pressure = (long) _bmp->bmp085GetPressure(_bmp->bmp085ReadUP());
+		float altitude = calcAltitude( pressure, _pressureAtSeaLevel );
+		_values[0] = temp;
+		_values[1] = (float) pressure;
+		_values[2] = altitude;
+		return _values;
+	}
+
+	// last temperature value (degrees C); assumes called refresh()
+	inline float temperature() const { return _values[ 0 ]; }
+
+	// last pressure value (pascals); assumes called refresh()
+	inline float pressure() const { return _values[ 1 ]; }
+
+	// last altitude value (meters); assumes called refresh()
+	inline float altitude() const { return _values[ 2 ]; }
+
+private:
+
+	void init(){
+		_bmp = new Barometer();
+		_bmp->init();
+	}
+
+	float calcAltitude(long pressure, float sealevelPressure) {
+		// From Adafruit_BMP085.cpp
+		float altitude;
+
+		altitude = 44330 * (1.0 - pow(pressure /sealevelPressure,0.1903));
+
+		return altitude;
+	}
+
+	// internal data
+	Barometer *_bmp;
+	float _pressureAtSeaLevel;
+	float _values[ 3 ];
+};
+#endif // USE_BMP180_DEVICE
 
 
 //============================================
@@ -3302,6 +3504,11 @@ Device *createDevice( byte type, byte pin, char *args[], int argCount ) {
 		d = new DHTDevice( pin, type );
 		break;
 #endif
+#ifdef USE_HIH6130_DEVICE
+	case DEVICE_TYPE_HIH6130:
+		d = new HIH6130Device();
+		break;
+#endif
 #ifdef USE_TSL2561_DEVICE
 	case DEVICE_TYPE_TSL2561:
 		d = new TSLDevice( args, argCount );
@@ -3315,6 +3522,11 @@ Device *createDevice( byte type, byte pin, char *args[], int argCount ) {
 #ifdef USE_BMP085_DEVICE
 	case DEVICE_TYPE_BMP085:
 		d = new BMP085Device( args, argCount );
+		break;
+#endif
+#ifdef USE_BMP180_DEVICE
+	case DEVICE_TYPE_BMP180:
+		d = new BMP180Device( args, argCount );
 		break;
 #endif
 #ifdef USE_WIND_DEVICES

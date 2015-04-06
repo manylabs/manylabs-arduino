@@ -204,6 +204,15 @@ units: C,percent
 pinType: digital
 #docUrl: TODO - Not on Seeed
 
+number: 24
+define: DEVICE_TYPE_HIH6130
+optionDefine: USE_HIH6130_DEVICE
+name: HIH6130
+description: HIH6130 Temperature/humidity Sensor
+subTypes: temperature,humidity
+units: C,percent
+pinType: I2C
+
 number: 30
 define: DEVICE_TYPE_DS18B20
 optionDefine: USE_DS18B20_DEVICE
@@ -320,6 +329,16 @@ subTypes: x,y,z
 units: g,g,g
 pinType: I2C
 docUrl: https://www.manylabs.org/product/G0104/
+
+number: 56
+define: DEVICE_TYPE_BMP180
+optionDefine: USE_BMP180_DEVICE
+name: BMP180
+description: BMP180 Pressure Sensor
+subTypes: temperature,pressure,altitude
+units: C,Pa,m
+pinType: I2C
+docUrl: http://www.seeedstudio.com/wiki/Grove_-_Barometer_Sensor_(BMP180)
 
 number: 60
 define: DEVICE_TYPE_GROVE_IR_TEMP

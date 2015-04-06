@@ -157,6 +157,10 @@ void sendEnabledDeviceTypes() {
 	sendInt( DEVICE_TYPE_AM2301 );
 	sendChar( separator );
 #endif
+#ifdef USE_HIH6130_DEVICE
+	sendInt( DEVICE_TYPE_HIH6130 );
+	sendChar( separator );
+#endif
 #ifdef USE_DS18B20_DEVICE
 	sendInt( DEVICE_TYPE_DS18B20 );
 	sendChar( separator );
@@ -205,6 +209,10 @@ void sendEnabledDeviceTypes() {
 #endif
 #ifdef USE_ADXL345_DEVICE
 	sendInt( DEVICE_TYPE_ADXL345 );
+	sendChar( separator );
+#endif
+#ifdef USE_BMP180_DEVICE
+	sendInt( DEVICE_TYPE_BMP180 );
 	sendChar( separator );
 #endif
 #ifdef USE_GROVE_IR_TEMP_DEVICE
