@@ -1415,19 +1415,27 @@ public:
 	// initialize barometric pressure sensor; does not take pin since I2C; does take extra arguments
 	BMP085Device() : Device( 0 ) {
 		_bmp = NULL;
-		_pressureAtSeaLevel = 101325; // Use 1 atm if no additional parameter is given
+		_pressureAtSeaLevel = 101325;
 	}
 
 	BMP085Device( float pressureAtSeaLevel ) : Device( 0 ) {
 		_bmp = NULL;
-		_pressureAtSeaLevel = pressureAtSeaLevel;
+		_pressureAtSeaLevel = 101325;
+		if(pressureAtSeaLevel > 0){
+			_pressureAtSeaLevel = pressureAtSeaLevel;
+		}
 	}
 
 	// initialize barometric pressure sensor; does not take pin since I2C;
 	// arguments: pressure at sea level
 	BMP085Device( char *args[], int argCount ) : Device( 0 ) {
+		_bmp = NULL;
+		_pressureAtSeaLevel = 101325; // Use 1 atm if no additional parameter is given
 		if (argCount >= 1) {
-			_pressureAtSeaLevel = (float) atof( args[ 0 ] );
+			float args0 = (float) atof( args[ 0 ] );
+			if(args0 > 0){
+				_pressureAtSeaLevel = args0;
+			}
 		}
 	}
 
@@ -1488,19 +1496,27 @@ public:
 	// initialize barometric pressure sensor; does not take pin since I2C; does take extra arguments
 	BMP180Device() : Device( 0 ) {
 		_bmp = NULL;
-		_pressureAtSeaLevel = 101325; // Use 1 atm if no additional parameter is given
+		_pressureAtSeaLevel = 101325;
 	}
 
 	BMP180Device( float pressureAtSeaLevel ) : Device( 0 ) {
 		_bmp = NULL;
-		_pressureAtSeaLevel = pressureAtSeaLevel;
+		_pressureAtSeaLevel = 101325;
+		if(pressureAtSeaLevel > 0){
+			_pressureAtSeaLevel = pressureAtSeaLevel;
+		}
 	}
 
 	// initialize barometric pressure sensor; does not take pin since I2C;
 	// arguments: pressure at sea level
 	BMP180Device( char *args[], int argCount ) : Device( 0 ) {
+		_bmp = NULL;
+		_pressureAtSeaLevel = 101325; // Use 1 atm if no additional parameter is given
 		if (argCount >= 1) {
-			_pressureAtSeaLevel = (float) atof( args[ 0 ] );
+			float args0 = (float) atof( args[ 0 ] );
+			if(args0 > 0){
+				_pressureAtSeaLevel = args0;
+			}
 		}
 	}
 
