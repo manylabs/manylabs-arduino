@@ -297,8 +297,8 @@ define: DEVICE_TYPE_BMP085
 optionDefine: USE_BMP085_DEVICE
 name: BMP085
 description: BMP085 Pressure Sensor
-subTypes: temperature,pressure,altitude
-units: C,Pa,m
+subTypes: temperature,pressure
+units: C,Pa
 pinType: I2C
 docUrl: https://www.manylabs.org/product/G0107/
 
@@ -335,8 +335,8 @@ define: DEVICE_TYPE_BMP180
 optionDefine: USE_BMP180_DEVICE
 name: BMP180
 description: BMP180 Pressure Sensor
-subTypes: temperature,pressure,altitude
-units: C,Pa,m
+subTypes: temperature,pressure
+units: C,Pa
 pinType: I2C
 docUrl: http://www.seeedstudio.com/wiki/Grove_-_Barometer_Sensor_(BMP180)
 
