@@ -1920,6 +1920,9 @@ public:
 	// or other movements. It will read the acceleration in all axes and calculate the
 	// offset necessary to bring x and y as close to 0, and z as close to 1, as possible.
 	void calibrate() {
+		if (_adxl == NULL){
+			init();
+		}
 
 		// get sum of 100 readings
 		_adxl->setAxisOffset( 0, 0, 0 );
